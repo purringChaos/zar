@@ -86,8 +86,6 @@ pub const TimeWidget = struct {
                 .full_text = h,
                 .markup = "pango",
             });
-
-            std.debug.print("h\n", .{});
             std.time.sleep(200 * std.time.ns_per_ms);
         }
     }
