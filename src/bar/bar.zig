@@ -15,11 +15,16 @@ pub const Bar = struct {
         for (self.widgets) |w| {
             std.debug.warn("Adding Initial Info: {}\n", .{w.name()});
             try self.infos.append(try self.dupe_info(w.initial_info()));
+        }
+        try self.print_infos(true);
+        for (self.widgets) |w| {
             std.debug.warn("Starting widget: {}\n", .{w.name()});
             var thread = try std.Thread.spawn(w, Widget.start);
         }
         var thread = try std.Thread.spawn(self, Bar.process);
         thread.wait();
+        self.running = false;
+        std.time.sleep(1000 * std.time.ns_per_ms);
         for (self.infos.items) |info| {
             try self.free_info(info);
         }
@@ -45,7 +50,8 @@ pub const Bar = struct {
         var i: i32 = 0;
         while (self.running) {
             //try self.print_infos(true);
-            std.time.sleep(1000 * std.time.ns_per_ms);
+            std.time.sleep(10000 * std.time.ns_per_ms);
+            return;
         }
     }
     pub fn keep_running(self: *Bar) bool {
