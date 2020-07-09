@@ -5,13 +5,12 @@ const barImpl = @import("bar/bar.zig");
 const textWidget = @import("widgets/text/text.zig");
 const weatherWidget = @import("widgets/weather/weather.zig");
 const timeWidget = @import("widgets/time/time.zig");
+const batteryWidget = @import("widgets/battery/battery.zig");
 
 const DebugAllocator = @import("debug_allocator.zig");
 const Info = @import("types/info.zig").Info;
 
 pub fn main() !void {
-    std.debug.print("{}\n", .{@import("builtin").link_libc});
-
     const debug: bool = true;
     var allocator: *std.mem.Allocator = undefined;
     var dbgAlloc: *DebugAllocator = undefined;
@@ -30,6 +29,7 @@ pub fn main() !void {
         &Widget.init(&textWidget.New("uwu", "tomato")),
         &Widget.init(&weatherWidget.New(allocator, &br, "London")),
         &Widget.init(&timeWidget.New(allocator, &br)),
+        &Widget.init(&batteryWidget.New(allocator, &br)),
 
         //&Widget.init(&weatherWidget.New(allocator, &br, "Oxford")),
         //&Widget.init(&weatherWidget.New(allocator, &br, "Newcastle")),

@@ -130,19 +130,27 @@ pub const WeatherWidget = struct {
             error.TemporaryNameServerFailure => {
                 try self.bar.add(Info{
                     .name = self.name,
-                    .full_text = "weather DNS Error with a chance of WiFi",
+                    .full_text = "DNS Error Fetching Weather",
                     .markup = "pango",
                 });
             },
             error.InvalidIPAddressFormat => {
                 try self.bar.add(Info{
                     .name = self.name,
-                    .full_text = "invalid IP",
+                    .full_text = "Invalid Weather IP",
+                    .markup = "pango",
+                });
+            },
+            error.ConnectionResetByPeer => {
+                try self.bar.add(Info{
+                    .name = self.name,
+                    .full_text = "Weather Reset",
                     .markup = "pango",
                 });
             },
             else => |e| {
                 std.debug.print("\n\n\n\n\nError!: {}\n\n\n\n\n", .{@errorName(e)});
+                return;
             },
         }
 
