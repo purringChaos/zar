@@ -20,13 +20,11 @@ pub fn main() !void {
     var br = Bar.init(&bar);
 
     var arena = std.heap.ArenaAllocator.init(allocator);
-    var arenacator = &arena.allocator;
-
+    defer arena.deinit();
     const widgets = [_]*Widget{
         &Widget.init(&textWidget.New("owo", "potato")),
-        &Widget.init(&weatherWidget.New(arenacator, &br, "London")),
+        &Widget.init(&weatherWidget.New(&arena.allocator, &br, "London")),
     };
     bar.widgets = widgets[0..];
     try br.start();
-    arena.deinit();
 }
