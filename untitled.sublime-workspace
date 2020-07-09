@@ -1,0 +1,282 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"allo",
+				"allocPrint"
+			],
+			[
+				"Accent",
+				"AccentMediumColour"
+			],
+			[
+				"we",
+				"weather_api_url"
+			],
+			[
+				"is",
+				"isNextMain"
+			],
+			[
+				"wea",
+				"weatherWidget"
+			],
+			[
+				"all",
+				"allocation"
+			],
+			[
+				"text",
+				"TextWidget"
+			],
+			[
+				"deb",
+				"debug_allocator"
+			],
+			[
+				"tex",
+				"textWidget"
+			]
+		]
+	},
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"lsp",
+				"LSP: Toggle Log Panel"
+			],
+			[
+				"enable",
+				"LSP: Enable Language Server in Project"
+			],
+			[
+				"disable",
+				"LSP: Disable Language Server Globally"
+			],
+			[
+				"language",
+				"LSP: Enable Language Server in Project"
+			],
+			[
+				"resource",
+				"PackageResourceViewer: Open Resource"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"toggle panel",
+				"LSP: Toggle Log Panel"
+			],
+			[
+				"Package Control: remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"",
+				"Build With: Zig - Run File"
+			],
+			[
+				"Package Control: inst",
+				"Package Control: Install Package"
+			],
+			[
+				"restart",
+				"LSP: Restart Servers"
+			],
+			[
+				"package resource",
+				"PackageResourceViewer: Open Resource"
+			],
+			[
+				"Package Control: insta",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: ins",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 207.0,
+		"history":
+		[
+			"view.settings().get(\"syntax\")",
+			"ls"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/kitteh/zar/src/types/widget.zig",
+		"/home/kitteh/zar/src/widgets/text/text.zig",
+		"/home/kitteh/zar/src/bar/bar.zig",
+		"/home/kitteh/zar/src/types/bar.zig",
+		"/home/kitteh/zar/src/formatting/colour.zig",
+		"/home/kitteh/zar/src/types/info.zig",
+		"/home/kitteh/zar/src/types/types.zig",
+		"/home/kitteh/zar/build.zig",
+		"/home/kitteh/.config/sublime-text-3/Packages/ayu/widgets/Widget - ayu-dark.sublime-settings",
+		"/home/kitteh/.config/sublime-text-3/Packages/Monokai++/themes/Monokai++.tmTheme",
+		"/home/kitteh/zar/.gitignore",
+		"/home/kitteh/.config/sublime-text-3/Packages/ayu/ayu-dark.sublime-theme"
+	],
+	"find":
+	{
+		"height": 41.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"return colour(",
+			".Fn",
+			"spawn",
+			"stringhashmap",
+			".put",
+			"HashMap",
+			"[]u8",
+			"sidebar",
+			"font",
+			"sidebar",
+			"sidebar_label"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"return colour(allocator, ",
+			"[]const u8"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"incremental_find":
+	{
+		"height": 39.0
+	},
+	"input":
+	{
+		"height": 58.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.diagnostics":
+	{
+		"height": 286.0
+	},
+	"output.exec":
+	{
+		"height": 169.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.language servers":
+	{
+		"height": 276.0
+	},
+	"pinned_build_system": "",
+	"replace":
+	{
+		"height": 69.0
+	},
+	"save_all_on_build": false,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 345.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 352.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 261.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
