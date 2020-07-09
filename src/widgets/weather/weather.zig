@@ -12,6 +12,7 @@ pub const WeatherWidget = struct {
     bar: *Bar,
     weather_api_url: []const u8,
     info: ?Info,
+    mutex: std.Mutex,
 
     pub fn name(self: *WeatherWidget) []const u8 {
         return "weather";
@@ -25,6 +26,8 @@ pub const WeatherWidget = struct {
         };
     }
     pub fn info(self: *WeatherWidget) Info {
+        const lock = self.mutex.acquire();
+        defer lock.release();
         if (self.info == null) {
             return self.initial_info();
         } else {
@@ -33,7 +36,8 @@ pub const WeatherWidget = struct {
     }
 
     pub fn start(self: *WeatherWidget) anyerror!void {
-        while (true) {
+        defer self.mutex.deinit();
+        while (self.bar.keep_running()) {
             std.time.sleep(2000 * std.time.ns_per_ms);
 
             std.debug.print("Starting Weather Widget.\n", .{});
@@ -108,7 +112,7 @@ pub const WeatherWidget = struct {
                 self.allocator.free(self.info.?.full_text);
             }
 
-            self.info = Info{
+            var i = Info{
                 .name = "weather",
                 .full_text = try std.fmt.allocPrint(self.allocator, "{} {}{}{} {}", .{
                     colour(arenacator, "accentlight", "weather"),
@@ -120,6 +124,10 @@ pub const WeatherWidget = struct {
                 .markup = "pango",
                 .color = "#ffffff",
             };
+            const lock = self.mutex.acquire();
+            self.info = i;
+            lock.release();
+
             arena.deinit();
         }
     }
@@ -131,5 +139,6 @@ pub inline fn New(allocator: *std.mem.Allocator, bar: *Bar, comptime location: [
         .bar = bar,
         .weather_api_url = "/data/2.5/weather?q=" ++ location ++ "&appid=dcea3595afe693d1c17846141f58ea10&units=metric",
         .info = null,
+        .mutex = std.Mutex.init(),
     };
 }

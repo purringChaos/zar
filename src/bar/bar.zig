@@ -34,8 +34,8 @@ pub const Bar = struct {
             try out_file.writer().writeAll("],\n");
         }
     }
-    pub fn add(self: Bar, i: *Info) void {
-        std.debug.warn("Add {}!\n", .{i.name});
+    pub fn keep_running(self: Bar) bool {
+        return self.running;
     }
 };
 
