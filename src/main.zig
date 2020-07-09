@@ -10,6 +10,8 @@ const DebugAllocator = @import("debug_allocator.zig");
 const Info = @import("types/info.zig").Info;
 
 pub fn main() !void {
+    std.debug.print("{}\n", .{@import("builtin").link_libc});
+
     const debug: bool = true;
     var allocator: *std.mem.Allocator = undefined;
     var dbgAlloc: *DebugAllocator = undefined;
