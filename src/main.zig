@@ -18,10 +18,15 @@ pub fn main() !void {
     var allocator = &dbgAlloc.allocator;
     var bar = barImpl.InitBar(allocator);
     var br = Bar.init(&bar);
+
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    var arenacator = &arena.allocator;
+
     const widgets = [_]*Widget{
         &Widget.init(&textWidget.New("owo", "potato")),
-        &Widget.init(&weatherWidget.New(&br, "London")),
+        &Widget.init(&weatherWidget.New(arenacator, &br, "London")),
     };
     bar.widgets = widgets[0..];
     try br.start();
+    arena.deinit();
 }

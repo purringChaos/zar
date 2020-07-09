@@ -13,7 +13,7 @@ pub const Bar = struct {
             var thread = try std.Thread.spawn(w, Widget.start);
         }
         var thread = try std.Thread.spawn(self, Bar.process);
-        std.time.sleep(100000 * std.time.ns_per_ms);
+        std.time.sleep(10000 * std.time.ns_per_ms);
         self.running = false;
         std.time.sleep(1000 * std.time.ns_per_ms);
         return;

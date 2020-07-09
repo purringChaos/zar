@@ -8,6 +8,7 @@ const colour = @import("../../formatting/colour.zig").colour;
 const DebugAllocator = @import("../../debug_allocator.zig");
 
 pub const WeatherWidget = struct {
+    allocator: *std.mem.Allocator,
     bar: *Bar,
     weather_api_url: []const u8,
     info: ?Info,
@@ -32,15 +33,11 @@ pub const WeatherWidget = struct {
     }
 
     pub fn start(self: *WeatherWidget) anyerror!void {
-        var buffer: [@sizeOf(u8) * 1024 * 8]u8 = undefined;
-        var fba = std.heap.FixedBufferAllocator.init(&buffer);
-        var allocator = &fba.allocator;
-
         while (true) {
             std.time.sleep(2000 * std.time.ns_per_ms);
 
             std.debug.print("Starting Weather Widget.\n", .{});
-            var file = try net.tcpConnectToHost(allocator, "api.openweathermap.org", 80);
+            var file = try net.tcpConnectToHost(self.allocator, "api.openweathermap.org", 80);
             std.debug.print("Connected to OpenWeatherMap.\n", .{});
 
             var read_buffer: [512]u8 = undefined;
@@ -105,15 +102,15 @@ pub const WeatherWidget = struct {
             } else if (temp == 18) {
                 tempColour = "yellow";
             }
-            var arena = std.heap.ArenaAllocator.init(allocator);
+            var arena = std.heap.ArenaAllocator.init(self.allocator);
             var arenacator = &arena.allocator;
             if (self.info != null) {
-                allocator.free(self.info.?.full_text);
+                self.allocator.free(self.info.?.full_text);
             }
 
             self.info = Info{
                 .name = "weather",
-                .full_text = try std.fmt.allocPrint(allocator, "{} {}{}{} {}", .{
+                .full_text = try std.fmt.allocPrint(self.allocator, "{} {}{}{} {}", .{
                     colour(arenacator, "accentlight", "weather"),
                     colour(arenacator, tempColour, try std.fmt.allocPrint(arenacator, "{}", .{temp})),
                     colour(arenacator, "accentlight", "°"),
@@ -128,8 +125,9 @@ pub const WeatherWidget = struct {
     }
 };
 
-pub inline fn New(bar: *Bar, comptime location: []const u8) WeatherWidget {
+pub inline fn New(allocator: *std.mem.Allocator, bar: *Bar, comptime location: []const u8) WeatherWidget {
     return WeatherWidget{
+        .allocator = allocator,
         .bar = bar,
         .weather_api_url = "/data/2.5/weather?q=" ++ location ++ "&appid=dcea3595afe693d1c17846141f58ea10&units=metric",
         .info = null,
