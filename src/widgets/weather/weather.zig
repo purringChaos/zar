@@ -10,6 +10,8 @@ const DebugAllocator = @import("../../debug_allocator.zig");
 const WeatherData = struct {
     temp: u16,
     main: []const u8,
+    code: i16,
+    message: []const u8,
 };
 
 pub const WeatherWidget = struct {
@@ -48,10 +50,15 @@ pub const WeatherWidget = struct {
 
         var isNextTemp: bool = false;
         var isNextMain: bool = false;
+        var isNextCode: bool = false;
+        var isNextMessage: bool = false;
+
         var foundMain: bool = false;
 
-        var temp: u16 = undefined;
-        var main: []const u8 = undefined;
+        var temp: u16 = 0;
+        var code: i16 = 0;
+        var main: []const u8 = "";
+        var message: []const u8 = "";
 
         while (try client.readEvent()) |event| {
             switch (event) {
@@ -69,16 +76,36 @@ pub const WeatherWidget = struct {
                                     isNextMain = true;
                                     continue;
                                 }
+                                if (std.mem.eql(u8, str, "cod")) {
+                                    isNextCode = true;
+                                    continue;
+                                }
+                                if (std.mem.eql(u8, str, "message")) {
+                                    isNextMessage = true;
+                                    continue;
+                                }
                                 if (isNextMain) {
                                     main = str;
                                     isNextMain = false;
                                     foundMain = true;
+                                }
+                                if (isNextMessage) {
+                                    message = str;
+                                }
+                                if (isNextCode) {
+                                    // why the fuck would you make code both a string and a int are you wanting me to question my sanity???
+                                    isNextCode = false;
+                                    code = try std.fmt.parseInt(i16, str, 10);
                                 }
                             },
                             .Number => |num| {
                                 if (isNextTemp) {
                                     isNextTemp = false;
                                     temp = @floatToInt(u16, std.math.round(try std.fmt.parseFloat(f32, num.slice(tokens.slice, tokens.i - 1))));
+                                }
+                                if (isNextCode) {
+                                    isNextCode = false;
+                                    code = try std.fmt.parseInt(i16, num.slice(tokens.slice, tokens.i - 1), 10);
                                 }
                             },
                             else => {},
@@ -88,18 +115,17 @@ pub const WeatherWidget = struct {
                 .status, .header, .head_complete, .closed, .end, .invalid => continue,
             }
         }
-        return WeatherData{ .temp = temp, .main = main };
+        return WeatherData{ .temp = temp, .main = main, .code = code, .message = message };
     }
 
     fn update_info(self: *WeatherWidget) anyerror!void {
-        std.debug.print("uwu!!\n", .{});
-
         var inf: WeatherData = undefined;
         var arena = std.heap.ArenaAllocator.init(self.allocator);
         defer arena.deinit();
         var arenacator = &arena.allocator;
         if (self.get_weather_info(arenacator)) |i| {
             inf = i;
+            //std.debug.print("{}", .{i});
         } else |err| switch (err) {
             error.TemporaryNameServerFailure => {
                 try self.bar.add(Info{
@@ -118,6 +144,15 @@ pub const WeatherWidget = struct {
             else => |e| {
                 std.debug.print("\n\n\n\n\nError!: {}\n\n\n\n\n", .{@errorName(e)});
             },
+        }
+
+        if (inf.code != 200) {
+            try self.bar.add(Info{
+                .name = self.name,
+                .full_text = try std.fmt.allocPrint(arenacator, "Weather API Failed: {}", .{inf.message}),
+                .markup = "pango",
+            });
+            return;
         }
 
         var temp = inf.temp;
@@ -148,6 +183,7 @@ pub const WeatherWidget = struct {
     pub fn start(self: *WeatherWidget) anyerror!void {
         while (self.bar.keep_running()) {
             try self.update_info();
+            std.time.sleep(1000 * std.time.ns_per_ms);
         }
     }
 };

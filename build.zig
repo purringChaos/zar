@@ -10,6 +10,10 @@ pub fn build(b: *Builder) void {
         .path = "deps/interfaces/interface.zig",
     });
     exe.addPackage(.{
+        .name = "time",
+        .path = "deps/time/src/time.zig",
+    });
+    exe.addPackage(.{
         .name = "hzzp",
         .path = "deps/hzzp/src/main.zig",
     });

@@ -47,10 +47,8 @@ pub const Bar = struct {
     }
 
     fn process(self: *Bar) !void {
-        var i: i32 = 0;
         while (self.running) {
-            //try self.print_infos(true);
-            std.time.sleep(10000 * std.time.ns_per_ms);
+            std.time.sleep(1000 * std.time.ns_per_ms);
             return;
         }
     }
@@ -82,8 +80,6 @@ pub const Bar = struct {
         for (self.infos.items) |infoItem, index| {
             if (std.mem.eql(u8, infoItem.name, info.name)) {
                 if (std.mem.eql(u8, infoItem.full_text, info.full_text)) {
-                    std.debug.warn("dupe!: {}\n", .{info.name});
-
                     // OK so info is a dupe, we don't care about dupes so we don't do anything.
                     return;
                 }

@@ -3,7 +3,7 @@
 	url = https://github.com/alexnask/interface.zig
 [submodule "deps/time"]
 	path = deps/time
-	url = https://github.com/gernest/time
+	url = https://github.com/purringChaos/time
 [submodule "deps/hzzp"]
 	path = deps/hzzp
 	url = https://github.com/truemedian/hzzp
