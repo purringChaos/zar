@@ -13,7 +13,6 @@ pub const TextWidget = struct {
             .name = self.name,
             .full_text = self.text,
             .markup = "pango",
-            .color = "#ffaaff",
         };
     }
     pub fn info(self: *TextWidget) Info {

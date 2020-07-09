@@ -7,6 +7,7 @@ pub const Bar = struct {
     const IFace = Interface(struct {
         start: fn (*SelfType) anyerror!void,
         keep_running: fn (*SelfType) bool,
+        add: fn (*SelfType, Info) anyerror!void,
     }, interface.Storage.NonOwning);
     iface: IFace,
     pub fn init(impl_ptr: var) Bar {
@@ -17,5 +18,8 @@ pub const Bar = struct {
     }
     pub fn start(self: *Bar) anyerror!void {
         return try self.iface.call("start", .{});
+    }
+    pub fn add(self: *Bar, info: Info) anyerror!void {
+        return try self.iface.call("add", .{info});
     }
 };

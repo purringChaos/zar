@@ -8,22 +8,23 @@ const DebugAllocator = @import("debug_allocator.zig");
 const colour = @import("formatting/colour.zig").colour;
 
 pub fn main() !void {
-    const dbgAlloc = &DebugAllocator.init(std.heap.page_allocator, 8192 * 512);
-    defer {
-        std.debug.print("Finished cleanup, last allocation info.\n", .{});
-        std.debug.print("\n{}\n", .{dbgAlloc.info});
-        dbgAlloc.printRemainingStackTraces();
-        dbgAlloc.deinit();
-    }
-    var allocator = &dbgAlloc.allocator;
+    //const dbgAlloc = &DebugAllocator.init(std.heap.page_allocator, 8192 * 512);
+    //defer {
+    //    std.debug.print("Finished cleanup, last allocation info.\n", .{});
+    //    std.debug.print("\n{}\n", .{dbgAlloc.info});
+    //    dbgAlloc.printRemainingStackTraces();
+    //    dbgAlloc.deinit();
+    //}
+    //var allocator = &dbgAlloc.allocator;
+    var allocator = std.heap.page_allocator;
+
     var bar = barImpl.InitBar(allocator);
     var br = Bar.init(&bar);
 
-    var arena = std.heap.ArenaAllocator.init(allocator);
-    defer arena.deinit();
     const widgets = [_]*Widget{
         &Widget.init(&textWidget.New("owo", "potato")),
-        &Widget.init(&weatherWidget.New(&arena.allocator, &br, "London")),
+        &Widget.init(&weatherWidget.New(allocator, &br, "London")),
+        &Widget.init(&weatherWidget.New(allocator, &br, "Newcastle")),
     };
     bar.widgets = widgets[0..];
     try br.start();

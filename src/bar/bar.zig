@@ -6,36 +6,87 @@ pub const Bar = struct {
     allocator: *std.mem.Allocator,
     widgets: []const *Widget,
     running: bool,
+    infos: std.ArrayList(Info),
+    mutex: std.Mutex,
+    out_file: std.fs.File,
     pub fn start(self: *Bar) !void {
         self.running = true;
+        try self.out_file.writer().writeAll("{\"version\": 1,\"click_events\": true}\n[\n");
         for (self.widgets) |w| {
+            std.debug.warn("Adding Initial Info: {}\n", .{w.name()});
+            try self.infos.append(try self.dupe_info(w.initial_info()));
             std.debug.warn("Starting widget: {}\n", .{w.name()});
             var thread = try std.Thread.spawn(w, Widget.start);
         }
         var thread = try std.Thread.spawn(self, Bar.process);
-        std.time.sleep(10000 * std.time.ns_per_ms);
-        self.running = false;
-        std.time.sleep(1000 * std.time.ns_per_ms);
-        return;
+        thread.wait();
+        for (self.infos.items) |info| {
+            try self.free_info(info);
+        }
+        self.infos.deinit();
     }
-    fn process(self: *Bar) !void {
-        const out_file = std.io.getStdOut();
-        try out_file.writer().writeAll("{\"version\": 1,\"click_events\": true}\n[\n");
-        while (self.running) {
-            //std.debug.warn("I am a Square!\n", .{});
-            std.time.sleep(250 * std.time.ns_per_ms);
-            try out_file.writer().writeAll("[");
-            for (self.widgets) |w, i| {
-                try std.json.stringify(w.info(), .{}, out_file.writer());
-                if (i < self.widgets.len - 1) {
-                    try out_file.writer().writeAll(",");
-                }
+
+    fn print_infos(self: *Bar, should_lock: bool) !void {
+        if (should_lock) {
+            const lock = self.mutex.acquire();
+            defer lock.release();
+        }
+        try self.out_file.writer().writeAll("[");
+        for (self.infos.items) |info, i| {
+            try std.json.stringify(info, .{}, self.out_file.writer());
+            if (i < self.infos.items.len - 1) {
+                try self.out_file.writer().writeAll(",");
             }
-            try out_file.writer().writeAll("],\n");
+        }
+        try self.out_file.writer().writeAll("],\n");
+    }
+
+    fn process(self: *Bar) !void {
+        var i: i32 = 0;
+        while (self.running) {
+            //try self.print_infos(true);
+            std.time.sleep(1000 * std.time.ns_per_ms);
         }
     }
-    pub fn keep_running(self: Bar) bool {
+    pub fn keep_running(self: *Bar) bool {
         return self.running;
+    }
+    pub fn free_info(self: *Bar, info: Info) !void {
+        self.allocator.free(info.name);
+        self.allocator.free(info.full_text);
+    }
+
+    pub fn dupe_info(self: *Bar, info: Info) !Info {
+        const new_name = try self.allocator.alloc(u8, info.name.len);
+        std.mem.copy(u8, new_name, info.name);
+        const new_text = try self.allocator.alloc(u8, info.full_text.len);
+        std.mem.copy(u8, new_text, info.full_text);
+        var i = Info{
+            .name = new_name,
+            .full_text = new_text,
+            .markup = "pango",
+        };
+        return i;
+    }
+
+    pub fn add(self: *Bar, info: Info) !void {
+        const lock = self.mutex.acquire();
+        defer lock.release();
+        //std.debug.warn("info: {}\n", .{info.name});
+        for (self.infos.items) |infoItem, index| {
+            if (std.mem.eql(u8, infoItem.name, info.name)) {
+                if (std.mem.eql(u8, infoItem.full_text, info.full_text)) {
+                    std.debug.warn("dupe!: {}\n", .{info.name});
+
+                    // OK so info is a dupe, we don't care about dupes so we don't do anything.
+                    return;
+                }
+                // If we reach here then it changed.
+                try self.free_info(infoItem);
+                self.infos.items[index] = try self.dupe_info(info);
+                try self.print_infos(false);
+            }
+        }
     }
 };
 
@@ -44,5 +95,8 @@ pub fn InitBar(allocator: *std.mem.Allocator) Bar {
         .allocator = allocator,
         .widgets = undefined,
         .running = false,
+        .infos = std.ArrayList(Info).init(allocator),
+        .mutex = std.Mutex.init(),
+        .out_file = std.io.getStdOut(),
     };
 }

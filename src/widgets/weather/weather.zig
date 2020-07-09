@@ -15,37 +15,28 @@ const WeatherData = struct {
 pub const WeatherWidget = struct {
     allocator: *std.mem.Allocator,
     bar: *Bar,
+    name: []const u8,
     weather_api_url: []const u8,
-    info: ?Info,
-    mutex: std.Mutex,
 
     pub fn name(self: *WeatherWidget) []const u8 {
-        return "weather";
+        return self.name;
     }
     pub fn initial_info(self: *WeatherWidget) Info {
         return Info{
-            .name = "weather",
+            .name = self.name,
             .full_text = "weather",
             .markup = "pango",
-            .color = "#ffffff",
         };
     }
     pub fn info(self: *WeatherWidget) Info {
-        const lock = self.mutex.acquire();
-        defer lock.release();
-        if (self.info == null) {
-            return self.initial_info();
-        } else {
-            return self.info.?;
-        }
+        return self.initial_info();
     }
 
-    fn get_weather_info(self: *WeatherWidget) !WeatherData {
+    fn get_weather_info(self: *WeatherWidget, allocator: *std.mem.Allocator) !WeatherData {
         // this will allocate some memory but it will be freed by the time it is returned.
-        var file = try net.tcpConnectToHost(self.allocator, "api.openweathermap.org", 80);
-        std.debug.print("Connected to OpenWeatherMap.\n", .{});
+        var file = try net.tcpConnectToHost(allocator, "api.openweathermap.org", 80);
 
-        var read_buffer: [512]u8 = undefined;
+        var read_buffer: [512 * 512]u8 = undefined;
         var client = hzzp.BaseClient.create(&read_buffer, &file.reader(), &file.writer());
 
         try client.writeHead("GET", self.weather_api_url);
@@ -54,8 +45,6 @@ pub const WeatherWidget = struct {
         try client.writeHeader("Connection", "close");
         try client.writeHeader("Accept", "*/*");
         try client.writeHeadComplete();
-
-        std.debug.print("Wrote Data, reading response.\n", .{});
 
         var isNextTemp: bool = false;
         var isNextMain: bool = false;
@@ -103,22 +92,31 @@ pub const WeatherWidget = struct {
     }
 
     fn update_info(self: *WeatherWidget) anyerror!void {
+        std.debug.print("uwu!!\n", .{});
+
         var inf: WeatherData = undefined;
-        if (self.get_weather_info()) |i| {
+        var arena = std.heap.ArenaAllocator.init(self.allocator);
+        defer arena.deinit();
+        var arenacator = &arena.allocator;
+        if (self.get_weather_info(arenacator)) |i| {
             inf = i;
         } else |err| switch (err) {
             error.TemporaryNameServerFailure => {
-                const lock = self.mutex.acquire();
-                self.info = Info{
-                    .name = "weather",
+                try self.bar.add(Info{
+                    .name = self.name,
                     .full_text = "weather DNS Error with a chance of WiFi",
                     .markup = "pango",
-                    .color = "#ffffff",
-                };
-                lock.release();
+                });
+            },
+            error.InvalidIPAddressFormat => {
+                try self.bar.add(Info{
+                    .name = self.name,
+                    .full_text = "invalid IP",
+                    .markup = "pango",
+                });
             },
             else => |e| {
-                return e;
+                std.debug.print("\n\n\n\n\nError!: {}\n\n\n\n\n", .{@errorName(e)});
             },
         }
 
@@ -133,12 +131,9 @@ pub const WeatherWidget = struct {
         } else if (temp == 18) {
             tempColour = "yellow";
         }
-        var arena = std.heap.ArenaAllocator.init(self.allocator);
-        var arenacator = &arena.allocator;
-
         var i = Info{
-            .name = "weather",
-            .full_text = try std.fmt.allocPrint(self.allocator, "{} {}{}{} {}", .{
+            .name = self.name,
+            .full_text = try std.fmt.allocPrint(arenacator, "{} {}{}{} {}", .{
                 colour(arenacator, "accentlight", "weather"),
                 colour(arenacator, tempColour, try std.fmt.allocPrint(arenacator, "{}", .{temp})),
                 colour(arenacator, "accentlight", "°"),
@@ -146,25 +141,13 @@ pub const WeatherWidget = struct {
                 colour(arenacator, "green", main),
             }),
             .markup = "pango",
-            .color = "#ffffff",
         };
-        const lock = self.mutex.acquire();
-        if (self.info != null) {
-            self.allocator.free(self.info.?.full_text);
-        }
-        self.info = i;
-        lock.release();
-        arena.deinit();
+        try self.bar.add(i);
     }
 
     pub fn start(self: *WeatherWidget) anyerror!void {
-        defer self.mutex.deinit();
         while (self.bar.keep_running()) {
             try self.update_info();
-            std.time.sleep(std.time.ns_per_min);
-        }
-        if (self.info != null) {
-            self.allocator.free(self.info.?.full_text);
         }
     }
 };
@@ -173,8 +156,7 @@ pub inline fn New(allocator: *std.mem.Allocator, bar: *Bar, comptime location: [
     return WeatherWidget{
         .allocator = allocator,
         .bar = bar,
+        .name = "weather " ++ location,
         .weather_api_url = "/data/2.5/weather?q=" ++ location ++ "&appid=dcea3595afe693d1c17846141f58ea10&units=metric",
-        .info = null,
-        .mutex = std.Mutex.init(),
     };
 }
