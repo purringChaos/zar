@@ -169,11 +169,14 @@ pub const WeatherWidget = struct {
         var tempColour: []const u8 = "green";
         if (temp >= 20) {
             tempColour = "red";
-        } else if (temp == 19) {
+        } else if (temp >= 16) {
             tempColour = "orange";
-        } else if (temp == 18) {
+        } else if (temp >= 12) {
             tempColour = "yellow";
+        } else {
+            tempColour = "green";
         }
+
         var i = Info{
             .name = self.name,
             .full_text = try std.fmt.allocPrint(arenacator, "{} {}{}{} {}", .{

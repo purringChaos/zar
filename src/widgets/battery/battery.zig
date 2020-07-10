@@ -110,9 +110,9 @@ pub const BatteryWidget = struct {
 
             if (capacity > 80) {
                 power_colour = "green";
-            } else if (capacity > 60) {
+            } else if (capacity > 70) {
                 power_colour = "yellow";
-            } else if (capacity > 40) {
+            } else if (capacity > 30) {
                 power_colour = "orange";
             } else {
                 power_colour = "red";
