@@ -11,7 +11,7 @@ const DebugAllocator = @import("debug_allocator.zig");
 const Info = @import("types/info.zig").Info;
 
 pub fn main() !void {
-    const debug: bool = true;
+    const debug: bool = false;
     var allocator: *std.mem.Allocator = undefined;
     var dbgAlloc: *DebugAllocator = undefined;
     if (debug) {
@@ -28,8 +28,8 @@ pub fn main() !void {
         &Widget.init(&textWidget.New("owo", "potato")),
         &Widget.init(&textWidget.New("uwu", "tomato")),
         &Widget.init(&weatherWidget.New(allocator, &br, "London")),
-        &Widget.init(&timeWidget.New(allocator, &br)),
         &Widget.init(&batteryWidget.New(allocator, &br)),
+        &Widget.init(&timeWidget.New(allocator, &br)),
 
         //&Widget.init(&weatherWidget.New(allocator, &br, "Oxford")),
         //&Widget.init(&weatherWidget.New(allocator, &br, "Newcastle")),

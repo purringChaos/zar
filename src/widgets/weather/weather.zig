@@ -191,7 +191,7 @@ pub const WeatherWidget = struct {
     pub fn start(self: *WeatherWidget) anyerror!void {
         while (self.bar.keep_running()) {
             try self.update_info();
-            std.time.sleep(1000 * std.time.ns_per_ms);
+            std.time.sleep(30 * std.time.ns_per_min);
         }
     }
 };
