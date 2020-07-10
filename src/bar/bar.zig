@@ -49,7 +49,6 @@ pub const Bar = struct {
     fn process(self: *Bar) !void {
         while (self.running) {
             std.time.sleep(5000 * std.time.ns_per_ms);
-            return;
         }
     }
     pub fn keep_running(self: *Bar) bool {

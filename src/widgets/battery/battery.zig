@@ -5,7 +5,7 @@ const fs = std.fs;
 const cwd = fs.cwd;
 const colour = @import("../../formatting/colour.zig").colour;
 
-pub fn compare_from_walker(allocator: *std.mem.Allocator, path: []const u8, start_path: []const u8, required_filename: []const u8) !bool {
+pub fn compare_path(allocator: *std.mem.Allocator, path: []const u8, start_path: []const u8, required_filename: []const u8) !bool {
     if (path.len == start_path.len + 1 + required_filename.len) {
         var full_path = try std.fmt.allocPrint(allocator, "{}/{}", .{ start_path, required_filename });
         defer allocator.free(full_path);
@@ -60,63 +60,38 @@ pub const BatteryWidget = struct {
         var arena = std.heap.ArenaAllocator.init(provided_allocator);
         defer arena.deinit();
         var allocator = &arena.allocator;
-        var power_supply_walker = try fs.walkPath(allocator, "/sys/class/power_supply");
-        defer power_supply_walker.deinit();
 
         var pp = PowerPaths{};
 
-        while (try power_supply_walker.next()) |supply_entry| {
-            switch (supply_entry.kind) {
-                .SymLink => {
-                    var filepath = supply_entry.path;
-                    var power_supply_file_walker = try fs.walkPath(allocator, filepath);
-                    defer power_supply_file_walker.deinit();
-
-                    while (try power_supply_file_walker.next()) |entry| {
-                        switch (entry.kind) {
-                            .File => {
-                                if (try compare_from_walker(allocator, entry.path, filepath, "status")) {
-                                    pp.status_path = try std.fmt.allocPrint(provided_allocator, "{}", .{entry.path});
-                                    continue;
-                                }
-                                if (try compare_from_walker(allocator, entry.path, filepath, "power_now")) {
-                                    pp.power_now_path = try std.fmt.allocPrint(provided_allocator, "{}", .{entry.path});
-                                    continue;
-                                }
-                                if (try compare_from_walker(allocator, entry.path, filepath, "capacity")) {
-                                    pp.capacity_path = try std.fmt.allocPrint(provided_allocator, "{}", .{entry.path});
-                                    continue;
-                                }
-                                if (try compare_from_walker(allocator, entry.path, filepath, "current_now")) {
-                                    pp.current_now_path = try std.fmt.allocPrint(provided_allocator, "{}", .{entry.path});
-                                    continue;
-                                }
-                                if (try compare_from_walker(allocator, entry.path, filepath, "voltage_now")) {
-                                    pp.voltage_now_path = try std.fmt.allocPrint(provided_allocator, "{}", .{entry.path});
-                                    continue;
-                                }
-                            },
-                            .SymLink,
-                            .BlockDevice,
-                            .CharacterDevice,
-                            .Directory,
-                            .NamedPipe,
-                            .UnixDomainSocket,
-                            .Whiteout,
-                            .Unknown,
-                            => continue,
-                        }
-                    }
-                },
-                .File,
-                .BlockDevice,
-                .CharacterDevice,
-                .Directory,
-                .NamedPipe,
-                .UnixDomainSocket,
-                .Whiteout,
-                .Unknown,
-                => continue,
+        var dir = try fs.cwd().openDir("/sys/class/power_supply", .{ .iterate = true });
+        var iterate = dir.iterate();
+        defer dir.close();
+        while (try iterate.next()) |ent| {
+            var ps_dir = try std.fmt.allocPrint(provided_allocator, "/sys/class/power_supply/{}", .{ent.name});
+            var supply_dir = try fs.cwd().openDir(ps_dir, .{ .iterate = true });
+            var supply_iterate = supply_dir.iterate();
+            defer supply_dir.close();
+            while (try supply_iterate.next()) |entry| {
+                if (std.mem.eql(u8, entry.name, "status")) {
+                    pp.status_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    continue;
+                }
+                if (std.mem.eql(u8, entry.name, "power_now")) {
+                    pp.status_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    continue;
+                }
+                if (std.mem.eql(u8, entry.name, "capacity")) {
+                    pp.status_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    continue;
+                }
+                if (std.mem.eql(u8, entry.name, "current_now")) {
+                    pp.status_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    continue;
+                }
+                if (std.mem.eql(u8, entry.name, "voltage_now")) {
+                    pp.status_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    continue;
+                }
             }
         }
 
@@ -128,7 +103,6 @@ pub const BatteryWidget = struct {
         defer pparena.deinit();
         var ppallocator = &pparena.allocator;
         const pp = try self.get_power_paths(ppallocator);
-        if (true) return;
         while (self.bar.keep_running()) {
             var arena = std.heap.ArenaAllocator.init(self.allocator);
             defer arena.deinit();
@@ -205,7 +179,7 @@ pub const BatteryWidget = struct {
 
 pub inline fn New(allocator: *std.mem.Allocator, bar: *Bar) BatteryWidget {
     return BatteryWidget{
-        .allocator = &std.heap.loggingAllocator(allocator, std.io.getStdErr().writer()).allocator,
+        .allocator = allocator,
         .bar = bar,
     };
 }
