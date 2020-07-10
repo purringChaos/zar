@@ -5,16 +5,6 @@ const fs = std.fs;
 const cwd = fs.cwd;
 const colour = @import("../../formatting/colour.zig").colour;
 
-pub fn compare_path(allocator: *std.mem.Allocator, path: []const u8, start_path: []const u8, required_filename: []const u8) !bool {
-    if (path.len == start_path.len + 1 + required_filename.len) {
-        var full_path = try std.fmt.allocPrint(allocator, "{}/{}", .{ start_path, required_filename });
-        defer allocator.free(full_path);
-        return std.mem.eql(u8, path, full_path);
-    }
-
-    return false;
-}
-
 pub const PowerPaths = struct {
     status_path: []const u8 = "",
     power_now_path: []const u8 = "",
