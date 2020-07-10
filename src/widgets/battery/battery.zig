@@ -67,19 +67,19 @@ pub const BatteryWidget = struct {
                     continue;
                 }
                 if (std.mem.eql(u8, entry.name, "power_now")) {
-                    pp.status_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    pp.power_now_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
                     continue;
                 }
                 if (std.mem.eql(u8, entry.name, "capacity")) {
-                    pp.status_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    pp.capacity_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
                     continue;
                 }
                 if (std.mem.eql(u8, entry.name, "current_now")) {
-                    pp.status_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    pp.current_now_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
                     continue;
                 }
                 if (std.mem.eql(u8, entry.name, "voltage_now")) {
-                    pp.status_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    pp.voltage_now_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
                     continue;
                 }
             }
