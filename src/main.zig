@@ -11,7 +11,7 @@ const DebugAllocator = @import("debug_allocator.zig");
 const Info = @import("types/info.zig").Info;
 
 pub fn main() !void {
-    const debug: bool = false;
+    const debug: bool = true;
     var allocator: *std.mem.Allocator = undefined;
     var dbgAlloc: *DebugAllocator = undefined;
     if (debug) {
@@ -25,11 +25,11 @@ pub fn main() !void {
     var br = Bar.init(&bar);
 
     const widgets = [_]*Widget{
-        &Widget.init(&textWidget.New("owo", "potato")), // 4KiB
-        &Widget.init(&textWidget.New("uwu", "tomato")), // 4KiB
-        &Widget.init(&weatherWidget.New(allocator, &br, "London")), // 16KiB
+        //&Widget.init(&textWidget.New("owo", "potato")), // 4KiB
+        //&Widget.init(&textWidget.New("uwu", "tomato")), // 4KiB
+        //&Widget.init(&weatherWidget.New(allocator, &br, "London")), // 16KiB
         &Widget.init(&batteryWidget.New(allocator, &br)), // 756.15KiB
-        &Widget.init(&timeWidget.New(allocator, &br)), // 32.46KiB
+        //&Widget.init(&timeWidget.New(allocator, &br)), // 32.46KiBx
     };
     bar.widgets = widgets[0..];
     try br.start();
