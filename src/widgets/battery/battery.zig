@@ -53,7 +53,6 @@ pub const BatteryWidget = struct {
         return self.initial_info();
     }
     pub fn get_power_paths(self: *BatteryWidget, provided_allocator: *std.mem.Allocator) anyerror!PowerPaths {
-        // remember that PowerPaths fields are allocated with self.allocator and will need to be freed seporately
         var arena = std.heap.ArenaAllocator.init(provided_allocator);
         defer arena.deinit();
         var allocator = &arena.allocator;

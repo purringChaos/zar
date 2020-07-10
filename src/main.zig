@@ -25,14 +25,11 @@ pub fn main() !void {
     var br = Bar.init(&bar);
 
     const widgets = [_]*Widget{
-        &Widget.init(&textWidget.New("owo", "potato")),
-        &Widget.init(&textWidget.New("uwu", "tomato")),
-        &Widget.init(&weatherWidget.New(allocator, &br, "London")),
-        &Widget.init(&batteryWidget.New(allocator, &br)),
-        &Widget.init(&timeWidget.New(allocator, &br)),
-
-        //&Widget.init(&weatherWidget.New(allocator, &br, "Oxford")),
-        //&Widget.init(&weatherWidget.New(allocator, &br, "Newcastle")),
+        &Widget.init(&textWidget.New("owo", "potato")), // 4KiB
+        &Widget.init(&textWidget.New("uwu", "tomato")), // 4KiB
+        &Widget.init(&weatherWidget.New(allocator, &br, "London")), // 16KiB
+        &Widget.init(&batteryWidget.New(allocator, &br)), // 756.15KiB
+        &Widget.init(&timeWidget.New(allocator, &br)), // 32.46KiB
     };
     bar.widgets = widgets[0..];
     try br.start();
