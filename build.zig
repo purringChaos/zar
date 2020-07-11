@@ -4,7 +4,7 @@ const Builder = @import("std").build.Builder;
 pub fn build(b: *Builder) void {
     const mode = b.standardReleaseOptions();
     const exe = b.addExecutable("zar", "src/main.zig");
-
+    exe.addBuildOption(bool, "terminal_version", false);
     exe.addPackage(.{
         .name = "interfaces",
         .path = "deps/interfaces/interface.zig",

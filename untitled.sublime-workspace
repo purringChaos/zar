@@ -4,6 +4,38 @@
 		"selected_items":
 		[
 			[
+				"powe",
+				"power_now_path"
+			],
+			[
+				"cur",
+				"current_now_path"
+			],
+			[
+				"vol",
+				"voltage_now"
+			],
+			[
+				"volt",
+				"voltage_now_path"
+			],
+			[
+				"cu",
+				"current_now_path"
+			],
+			[
+				"capacit",
+				"capacity_path"
+			],
+			[
+				"w",
+				"w"
+			],
+			[
+				"stack_",
+				"stack_addresses_size"
+			],
+			[
 				"allo",
 				"allocPrint"
 			],
@@ -54,7 +86,11 @@
 		[
 			[
 				"lsp",
-				"LSP: Toggle Log Panel"
+				"LSP: Toggle Diagnostics Panel"
+			],
+			[
+				"enable lang",
+				"LSP: Enable Language Server Globally"
 			],
 			[
 				"enable",
@@ -131,14 +167,27 @@
 	},
 	"file_history":
 	[
-		"/home/kitteh/zar/src/types/widget.zig",
-		"/home/kitteh/zar/src/widgets/text/text.zig",
+		"/home/kitteh/zig-linux-x86_64-0.6.0+485231dea/lib/zig/std/std.zig",
+		"/home/kitteh/zar/src/debug_allocator.zig",
 		"/home/kitteh/zar/src/bar/bar.zig",
-		"/home/kitteh/zar/src/types/bar.zig",
+		"/home/kitteh/bar/battery.go",
 		"/home/kitteh/zar/src/formatting/colour.zig",
-		"/home/kitteh/zar/src/types/info.zig",
-		"/home/kitteh/zar/src/types/types.zig",
 		"/home/kitteh/zar/build.zig",
+		"/home/kitteh/zar/deps/time/src/time.zig",
+		"/home/kitteh/bar/time.go",
+		"/home/kitteh/zar/src/widgets/weather/weather.zig",
+		"/home/kitteh/bar/main.go",
+		"/home/kitteh/zig-linux-x86_64-0.6.0+485231dea/lib/zig/std/valgrind/memcheck.zig",
+		"/home/kitteh/zig-linux-x86_64-0.6.0+485231dea/lib/zig/std/progress.zig",
+		"/home/kitteh/zig-linux-x86_64-0.6.0+485231dea/lib/zig/std/mutex.zig",
+		"/home/kitteh/zig-linux-x86_64-0.6.0+485231dea/lib/zig/std/meta.zig",
+		"/home/kitteh/zar/src/types/info.zig",
+		"/home/kitteh/zar/src/widgets/text/text.zig",
+		"/home/kitteh/bar/bar.go",
+		"/home/kitteh/zar/src/types/bar.zig",
+		"/home/kitteh/zar/src/widgets/memory/memory.zig",
+		"/home/kitteh/zar/src/types/widget.zig",
+		"/home/kitteh/zar/src/types/types.zig",
 		"/home/kitteh/.config/sublime-text-3/Packages/ayu/widgets/Widget - ayu-dark.sublime-settings",
 		"/home/kitteh/.config/sublime-text-3/Packages/Monokai++/themes/Monokai++.tmTheme",
 		"/home/kitteh/zar/.gitignore",
@@ -146,7 +195,7 @@
 	],
 	"find":
 	{
-		"height": 41.0
+		"height": 54.0
 	},
 	"find_in_files":
 	{
@@ -160,6 +209,43 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"_",
+			"secureZero",
+			"self.widgets",
+			"TextWidget",
+			".linux",
+			"time(",
+			"Clock ",
+			"Clock",
+			"date.day % 10",
+			"date.day % 100",
+			" \"",
+			"%s",
+			"fn date(",
+			"isize",
+			"DateDetail",
+			"days",
+			"m: *mem.Allocator",
+			"initLocation",
+			"std.heap.page",
+			"utc_local",
+			"std.heap.page",
+			"fn init(",
+			"init(",
+			"std.heap.page_allocator",
+			"allocator",
+			"Febuary",
+			"month",
+			"colour",
+			"Memory",
+			"month",
+			"free_",
+			"error",
+			"self.allocator",
+			"Text",
+			"deinit",
+			"max_bytes",
+			"printRemainingStackTraces",
 			"return colour(",
 			".Fn",
 			"spawn",
@@ -178,6 +264,12 @@
 		"regex": false,
 		"replace_history":
 		[
+			"BatteryWidget",
+			"@mod(date.day, 10)",
+			"@mod(date.day, 100)",
+			"{}",
+			"Time",
+			"Memory",
 			"return colour(allocator, ",
 			"[]const u8"
 		],
@@ -189,7 +281,7 @@
 	},
 	"incremental_find":
 	{
-		"height": 39.0
+		"height": 27.0
 	},
 	"input":
 	{
@@ -220,7 +312,7 @@
 	"menu_visible": true,
 	"output.diagnostics":
 	{
-		"height": 286.0
+		"height": 37.0
 	},
 	"output.exec":
 	{
@@ -237,7 +329,7 @@
 	"pinned_build_system": "",
 	"replace":
 	{
-		"height": 69.0
+		"height": 50.0
 	},
 	"save_all_on_build": false,
 	"select_file":

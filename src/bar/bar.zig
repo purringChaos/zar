@@ -2,6 +2,8 @@ const std = @import("std");
 const Widget = @import("../types/widget.zig").Widget;
 const Info = @import("../types/info.zig").Info;
 
+const terminal_version = @import("build_options").terminal_version;
+
 pub const Bar = struct {
     allocator: *std.mem.Allocator,
     widgets: []const *Widget,
@@ -11,7 +13,7 @@ pub const Bar = struct {
     out_file: std.fs.File,
     pub fn start(self: *Bar) !void {
         self.running = true;
-        try self.out_file.writer().writeAll("{\"version\": 1,\"click_events\": true}\n[\n");
+        if (!terminal_version) try self.out_file.writer().writeAll("{\"version\": 1,\"click_events\": true}\n[\n");
         for (self.widgets) |w| {
             std.debug.warn("Adding Initial Info: {}\n", .{w.name()});
             try self.infos.append(try self.dupe_info(w.initial_info()));
@@ -36,19 +38,32 @@ pub const Bar = struct {
             const lock = self.mutex.acquire();
             defer lock.release();
         }
-        try self.out_file.writer().writeAll("[");
+        if (!terminal_version) try self.out_file.writer().writeAll("[");
         for (self.infos.items) |info, i| {
-            try std.json.stringify(info, .{}, self.out_file.writer());
-            if (i < self.infos.items.len - 1) {
-                try self.out_file.writer().writeAll(",");
+            if (!terminal_version) {
+                try std.json.stringify(info, .{}, self.out_file.writer());
+
+                if (i < self.infos.items.len - 1) {
+                    try self.out_file.writer().writeAll(",");
+                }
+            } else {
+                try self.out_file.writer().writeAll(info.full_text);
+                if (i < self.infos.items.len - 1) {
+                    try self.out_file.writer().writeAll("|");
+                }
             }
         }
-        try self.out_file.writer().writeAll("],\n");
+        if (!terminal_version) {
+            try self.out_file.writer().writeAll("],\n");
+        } else {
+            try self.out_file.writer().writeAll("\n");
+        }
     }
 
     fn process(self: *Bar) !void {
         while (self.running) {
             std.time.sleep(5000 * std.time.ns_per_ms);
+            //return;
         }
     }
     pub fn keep_running(self: *Bar) bool {
