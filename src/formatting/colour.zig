@@ -1,6 +1,7 @@
 const std = @import("std");
 const eql = std.mem.eql;
 const terminal_version = @import("build_options").terminal_version;
+const disable_colour = @import("build_options").disable_colour;
 
 const TextColour = "#D8DEE9";
 const DarkerTextColour = "#E5E9F0";
@@ -18,9 +19,9 @@ const TerminalResetColour = "\u{001b}[37m";
 const TerminalTextColour = TerminalResetColour;
 const TerminalDarkerTextColour = TerminalResetColour;
 const TerminalDarkestTextColour = TerminalResetColour;
-const TerminalAccentLightColour = "\u{001b}[38;5;26m";
+const TerminalAccentLightColour = "\u{001b}[38;5;38m";
 const TerminalAccentMediumColour = "\u{001b}[38;5;32m";
-const TerminalAccentDarkColour = "\u{001b}[38;5;38m";
+const TerminalAccentDarkColour = "\u{001b}[38;5;26m";
 const TerminalRedColour = "\u{001b}[31m";
 const TerminalOrangeColour = "\u{001b}[31;1m";
 const TerminalYellowColour = "\u{001b}[33m";
@@ -28,6 +29,8 @@ const TerminalGreenColour = "\u{001b}[32m";
 const TerminalPurpleColour = "\u{001b}[35m";
 
 pub fn colour(alloc: *std.mem.Allocator, clr: []const u8, str: []const u8) ![]const u8 {
+    if (disable_colour) return str;
+
     if (clr[0] == '#' or clr[0] == '\u{001b}') {
         if (terminal_version) {
             return try std.fmt.allocPrint(alloc, "{}{}" ++ TerminalResetColour, .{ clr, str });
