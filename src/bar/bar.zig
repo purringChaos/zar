@@ -61,8 +61,17 @@ pub const Bar = struct {
     }
 
     fn process(self: *Bar) !void {
+        var line_buffer: [512]u8 = undefined;
         while (self.running) {
-            std.time.sleep(5000 * std.time.ns_per_ms);
+            const line_opt = try std.io.getStdIn().inStream().readUntilDelimiterOrEof(&line_buffer, '\n');
+            if (line_opt) |l| {
+                var line = l;
+                if (std.mem.eql(u8, line, "[")) continue;
+                if (line[0] == ',') line = line[1..line.len];
+                std.debug.print("{}\n", .{line});
+            }
+
+            //std.time.sleep(5000 * std.time.ns_per_ms);
             //return;
         }
     }

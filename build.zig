@@ -17,7 +17,7 @@ pub fn build(b: *Builder) void {
     exe.addBuildOption(bool, "terminal_version", terminal_version);
     exe.addBuildOption(bool, "disable_colour", disable_colour);
 
-    exe.strip = true;
+    //exe.strip = true;
     exe.addPackage(.{
         .name = "interfaces",
         .path = "deps/interfaces/interface.zig",
