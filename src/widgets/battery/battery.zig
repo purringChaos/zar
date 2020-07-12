@@ -43,9 +43,6 @@ pub const BatteryWidget = struct {
             .markup = "pango",
         };
     }
-    pub fn info(self: *BatteryWidget) Info {
-        return self.initial_info();
-    }
     pub fn get_power_paths(self: *BatteryWidget, provided_allocator: *std.mem.Allocator) anyerror!PowerPaths {
         var arena = std.heap.ArenaAllocator.init(provided_allocator);
         defer arena.deinit();

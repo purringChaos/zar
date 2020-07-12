@@ -19,10 +19,6 @@ pub const TimeWidget = struct {
         };
     }
 
-    pub fn info(self: *TimeWidget) Info {
-        return self.initial_info();
-    }
-
     pub fn start(self: *TimeWidget) anyerror!void {
         while (self.bar.keep_running()) {
             var arena = std.heap.ArenaAllocator.init(self.allocator);

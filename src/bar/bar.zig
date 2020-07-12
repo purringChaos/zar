@@ -1,6 +1,7 @@
 const std = @import("std");
 const Widget = @import("../types/widget.zig").Widget;
 const Info = @import("../types/info.zig").Info;
+const MouseEvent = @import("../types/mouseevent.zig").MouseEvent;
 
 const terminal_version = @import("build_options").terminal_version;
 
@@ -9,7 +10,7 @@ pub const Bar = struct {
     widgets: []const *Widget,
     running: bool,
     infos: std.ArrayList(Info),
-    mutex: std.Mutex,
+    items_mutex: std.Mutex,
     out_file: std.fs.File,
     pub fn start(self: *Bar) !void {
         self.running = true;
@@ -35,7 +36,7 @@ pub const Bar = struct {
 
     fn print_infos(self: *Bar, should_lock: bool) !void {
         if (should_lock) {
-            const lock = self.mutex.acquire();
+            const lock = self.items_mutex.acquire();
             defer lock.release();
         }
         if (!terminal_version) try self.out_file.writer().writeAll("[");
@@ -63,12 +64,20 @@ pub const Bar = struct {
     fn process(self: *Bar) !void {
         var line_buffer: [512]u8 = undefined;
         while (self.running) {
+            var arena = std.heap.ArenaAllocator.init(self.allocator);
+            defer arena.deinit();
+            var allocator = &arena.allocator;
             const line_opt = try std.io.getStdIn().inStream().readUntilDelimiterOrEof(&line_buffer, '\n');
             if (line_opt) |l| {
                 var line = l;
                 if (std.mem.eql(u8, line, "[")) continue;
                 if (line[0] == ',') line = line[1..line.len];
                 std.debug.print("{}\n", .{line});
+
+                const parseOptions = std.json.ParseOptions{ .allocator = allocator };
+                const data = try std.json.parse(MouseEvent, &std.json.TokenStream.init(line), parseOptions);
+                std.debug.print("{}\n", .{data});
+                std.json.parseFree(MouseEvent, data, parseOptions);
             }
 
             //std.time.sleep(5000 * std.time.ns_per_ms);
@@ -97,7 +106,7 @@ pub const Bar = struct {
     }
 
     pub fn add(self: *Bar, info: Info) !void {
-        const lock = self.mutex.acquire();
+        const lock = self.items_mutex.acquire();
         defer lock.release();
         //std.debug.warn("info: {}\n", .{info.name});
         for (self.infos.items) |infoItem, index| {
@@ -121,7 +130,7 @@ pub fn InitBar(allocator: *std.mem.Allocator) Bar {
         .widgets = undefined,
         .running = false,
         .infos = std.ArrayList(Info).init(allocator),
-        .mutex = std.Mutex.init(),
+        .items_mutex = std.Mutex.init(),
         .out_file = std.io.getStdOut(),
     };
 }

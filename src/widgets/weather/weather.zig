@@ -30,9 +30,6 @@ pub const WeatherWidget = struct {
             .markup = "pango",
         };
     }
-    pub fn info(self: *WeatherWidget) Info {
-        return self.initial_info();
-    }
 
     fn get_weather_info(self: *WeatherWidget, allocator: *std.mem.Allocator) !WeatherData {
         // this will allocate some memory but it will be freed by the time it is returned.

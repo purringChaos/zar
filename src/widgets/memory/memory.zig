@@ -90,9 +90,6 @@ pub const MemoryWidget = struct {
             .markup = "pango",
         };
     }
-    pub fn info(self: *MemoryWidget) Info {
-        return self.initial_info();
-    }
 
     fn update_bar(self: *MemoryWidget) !void {
         var arena = std.heap.ArenaAllocator.init(self.allocator);

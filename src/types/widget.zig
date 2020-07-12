@@ -7,7 +7,6 @@ pub const Widget = struct {
     const IFace = Interface(struct {
         name: fn (*SelfType) []const u8,
         initial_info: fn (*SelfType) Info,
-        info: fn (*SelfType) Info,
         start: fn (*SelfType) anyerror!void,
     }, interface.Storage.NonOwning);
     iface: IFace,
@@ -16,9 +15,6 @@ pub const Widget = struct {
     }
     pub fn name(self: *Widget) []const u8 {
         return self.iface.call("name", .{});
-    }
-    pub fn info(self: *Widget) Info {
-        return self.iface.call("info", .{});
     }
     pub fn initial_info(self: *Widget) Info {
         return self.iface.call("initial_info", .{});

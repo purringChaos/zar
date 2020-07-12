@@ -15,9 +15,6 @@ pub const TextWidget = struct {
             .markup = "pango",
         };
     }
-    pub fn info(self: *TextWidget) Info {
-        return self.initial_info();
-    }
 
     pub fn start(self: *TextWidget) anyerror!void {}
 };

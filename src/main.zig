@@ -28,7 +28,7 @@ pub fn main() !void {
         &Widget.init(&textWidget.New("owo", "potato")), // 4KiB
         &Widget.init(&textWidget.New("uwu", "tomato")), // 4KiB
         &Widget.init(&memoryWidget.New(allocator, &br)), // 8.08KiB
-        &Widget.init(&weatherWidget.New(allocator, &br, "London")), // 16KiB
+        &Widget.init(&weatherWidget.New(allocator, &br, "Stockholm")), // 16KiB
         &Widget.init(&batteryWidget.New(allocator, &br)), // 12.11KiB
         &Widget.init(&timeWidget.New(allocator, &br)), // 32.46KiB
     };

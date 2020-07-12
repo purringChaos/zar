@@ -1,11 +1,15 @@
 pub const MouseEvent = struct {
     name: []const u8,
-    button: enum(u3) {
+    button: enum(u4) {
         LeftClick = 1,
         MiddleClick = 2,
         RightClick = 3,
         ScrollUp = 4,
         ScrollDown = 5,
+        WheelLeft = 6,
+        WheelRight = 7,
+        Backwards = 8,
+        Forwards = 9,
     },
     event: u16,
     x: u16,
