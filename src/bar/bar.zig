@@ -1,6 +1,6 @@
 const std = @import("std");
 const Widget = @import("../types/widget.zig").Widget;
-const Info = @import("../types/info.zig").Info;
+const Info = @import("../types/info.zig");
 const MouseEvent = @import("../types/mouseevent.zig").MouseEvent;
 
 const terminal_version = @import("build_options").terminal_version;

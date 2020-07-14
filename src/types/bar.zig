@@ -1,7 +1,7 @@
 const interface = @import("interfaces");
 const Interface = interface.Interface;
 const SelfType = interface.SelfType;
-const Info = @import("info.zig").Info;
+const Info = @import("info.zig");
 
 pub const Bar = struct {
     const IFace = Interface(struct {
@@ -10,7 +10,7 @@ pub const Bar = struct {
         add: fn (*SelfType, Info) anyerror!void,
     }, interface.Storage.NonOwning);
     iface: IFace,
-    pub fn init(impl_ptr: var) Bar {
+    pub fn init(impl_ptr: anytype) Bar {
         return .{ .iface = try IFace.init(.{impl_ptr}) };
     }
     pub fn keep_running(self: *Bar) bool {

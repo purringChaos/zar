@@ -2,7 +2,7 @@ const std = @import("std");
 const net = std.net;
 const io = std.io;
 const hzzp = @import("hzzp");
-const Info = @import("../../types/info.zig").Info;
+const Info = @import("../../types/info.zig");
 const Bar = @import("../../types/bar.zig").Bar;
 const colour = @import("../../formatting/colour.zig").colour;
 const DebugAllocator = @import("../../debug_allocator.zig");
@@ -130,6 +130,7 @@ pub const WeatherWidget = struct {
                     .full_text = "DNS Error Fetching Weather",
                     .markup = "pango",
                 });
+                return;
             },
             error.InvalidIPAddressFormat => {
                 try self.bar.add(Info{
@@ -137,6 +138,7 @@ pub const WeatherWidget = struct {
                     .full_text = "Invalid Weather IP",
                     .markup = "pango",
                 });
+                return;
             },
             error.ConnectionResetByPeer => {
                 try self.bar.add(Info{
@@ -144,6 +146,7 @@ pub const WeatherWidget = struct {
                     .full_text = "Weather Reset",
                     .markup = "pango",
                 });
+                return;
             },
             else => |e| {
                 std.debug.print("\n\n\n\n\nError!: {}\n\n\n\n\n", .{@errorName(e)});

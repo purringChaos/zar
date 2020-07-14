@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"Dark",
+				"DarkerTextColour"
+			],
+			[
 				"powe",
 				"power_now_path"
 			],
@@ -86,7 +90,15 @@
 		[
 			[
 				"lsp",
-				"LSP: Toggle Diagnostics Panel"
+				"LSP: Disable Language Server in Project"
+			],
+			[
+				"lsp res",
+				"LSP: Restart Servers"
+			],
+			[
+				"lsp enable",
+				"LSP: Enable Language Server Globally"
 			],
 			[
 				"enable lang",
@@ -167,11 +179,14 @@
 	},
 	"file_history":
 	[
+		"/home/kitteh/zar/src/widgets/time/time.zig",
+		"/home/kitteh/zar/src/widgets/memory/memory.zig",
+		"/home/kitteh/zar/src/formatting/colour.zig",
+		"/home/kitteh/bar/memory.go",
 		"/home/kitteh/zig-linux-x86_64-0.6.0+485231dea/lib/zig/std/std.zig",
 		"/home/kitteh/zar/src/debug_allocator.zig",
 		"/home/kitteh/zar/src/bar/bar.zig",
 		"/home/kitteh/bar/battery.go",
-		"/home/kitteh/zar/src/formatting/colour.zig",
 		"/home/kitteh/zar/build.zig",
 		"/home/kitteh/zar/deps/time/src/time.zig",
 		"/home/kitteh/bar/time.go",
@@ -185,7 +200,6 @@
 		"/home/kitteh/zar/src/widgets/text/text.zig",
 		"/home/kitteh/bar/bar.go",
 		"/home/kitteh/zar/src/types/bar.zig",
-		"/home/kitteh/zar/src/widgets/memory/memory.zig",
 		"/home/kitteh/zar/src/types/widget.zig",
 		"/home/kitteh/zar/src/types/types.zig",
 		"/home/kitteh/.config/sublime-text-3/Packages/ayu/widgets/Widget - ayu-dark.sublime-settings",
@@ -209,6 +223,11 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			".mutex",
+			"else return",
+			") return",
+			"comptime",
+			"colour(",
 			"_",
 			"secureZero",
 			"self.widgets",
@@ -264,6 +283,9 @@
 		"regex": false,
 		"replace_history":
 		[
+			".items_mutex",
+			"else",
+			")",
 			"BatteryWidget",
 			"@mod(date.day, 10)",
 			"@mod(date.day, 100)",
@@ -281,7 +303,7 @@
 	},
 	"incremental_find":
 	{
-		"height": 27.0
+		"height": 28.0
 	},
 	"input":
 	{
@@ -316,7 +338,7 @@
 	},
 	"output.exec":
 	{
-		"height": 169.0
+		"height": 70.0
 	},
 	"output.find_results":
 	{
@@ -329,7 +351,7 @@
 	"pinned_build_system": "",
 	"replace":
 	{
-		"height": 50.0
+		"height": 52.0
 	},
 	"save_all_on_build": false,
 	"select_file":
@@ -357,7 +379,7 @@
 		"selected_items":
 		[
 		],
-		"width": 352.0
+		"width": 580.0
 	},
 	"settings":
 	{

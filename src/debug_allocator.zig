@@ -41,7 +41,7 @@ pub const AllocationInfo = struct {
         self: AllocationInfo,
         comptime fmt: []const u8,
         options: std.fmt.FormatOptions,
-        out_stream: var,
+        out_stream: anytype,
     ) !void {
         @setEvalBranchQuota(2000);
 

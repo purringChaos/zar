@@ -1,5 +1,5 @@
 const std = @import("std");
-const Info = @import("../../types/info.zig").Info;
+const Info = @import("../../types/info.zig");
 const Bar = @import("../../types/bar.zig").Bar;
 const time = @import("time");
 const colour = @import("../../formatting/colour.zig").colour;

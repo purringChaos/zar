@@ -30,6 +30,7 @@ pub fn build(b: *Builder) void {
         .name = "hzzp",
         .path = "deps/hzzp/src/main.zig",
     });
+
     exe.setBuildMode(mode);
     const run_cmd = exe.run();
 

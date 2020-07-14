@@ -1,5 +1,5 @@
 const std = @import("std");
-const Info = @import("../../types/info.zig").Info;
+const Info = @import("../../types/info.zig");
 const Bar = @import("../../types/bar.zig").Bar;
 const fs = std.fs;
 const cwd = fs.cwd;
@@ -86,10 +86,12 @@ pub const BatteryWidget = struct {
     }
 
     pub fn start(self: *BatteryWidget) anyerror!void {
-        var pparena = std.heap.ArenaAllocator.init(self.allocator);
-        defer pparena.deinit();
-        var ppallocator = &pparena.allocator;
+        var buffer: [1024]u8 = undefined;
+        var fba = std.heap.FixedBufferAllocator.init(&buffer);
+        var ppallocator = &fba.allocator;
         const pp = try self.get_power_paths(ppallocator);
+        std.debug.print("{}\n", .{pp});
+
         while (self.bar.keep_running()) {
             var arena = std.heap.ArenaAllocator.init(self.allocator);
             defer arena.deinit();

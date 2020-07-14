@@ -28,6 +28,46 @@ const TerminalYellowColour = "\u{001b}[33m";
 const TerminalGreenColour = "\u{001b}[32m";
 const TerminalPurpleColour = "\u{001b}[35m";
 
+pub fn comptimeColour(comptime clr: []const u8, comptime str: []const u8) []const u8 {
+    if (disable_colour) return str;
+
+    if (clr[0] == '#' or clr[0] == '\u{001b}') {
+        if (terminal_version) {
+            return crl ++ str ++ TerminalResetColour;
+        } else {
+            return "<span color=\"" ++ clr ++ "\">" ++ str ++ "</span>";
+        }
+    } else {
+        var colourText: []const u8 = "";
+        if (eql(u8, clr, "text")) {
+            colourText = if (!terminal_version) TextColour else TerminalTextColour;
+        } else if (eql(u8, clr, "dark")) {
+            colourText = if (!terminal_version) DarkerTextColour else TerminalDarkerTextColour;
+        } else if (eql(u8, clr, "darkest")) {
+            colourText = if (!terminal_version) DarkestTextColour else TerminalDarkestTextColour;
+        } else if (eql(u8, clr, "accentlight")) {
+            colourText = if (!terminal_version) AccentLightColour else TerminalAccentLightColour;
+        } else if (eql(u8, clr, "accentmedium")) {
+            colourText = if (!terminal_version) AccentMediumColour else TerminalAccentMediumColour;
+        } else if (eql(u8, clr, "accentdark")) {
+            colourText = if (!terminal_version) AccentDarkColour else TerminalAccentDarkColour;
+        } else if (eql(u8, clr, "red")) {
+            colourText = if (!terminal_version) RedColour else TerminalRedColour;
+        } else if (eql(u8, clr, "orange")) {
+            colourText = if (!terminal_version) OrangeColour else TerminalOrangeColour;
+        } else if (eql(u8, clr, "yellow")) {
+            colourText = if (!terminal_version) YellowColour else TerminalYellowColour;
+        } else if (eql(u8, clr, "green")) {
+            colourText = if (!terminal_version) GreenColour else TerminalGreenColour;
+        } else if (eql(u8, clr, "purple")) {
+            colourText = if (!terminal_version) PurpleColour else TerminalPurpleColour;
+        } else {
+            @compileError("colour not found");
+        }
+        return comptimeColour(colourText, str);
+    }
+}
+
 pub fn colour(alloc: *std.mem.Allocator, clr: []const u8, str: []const u8) ![]const u8 {
     if (disable_colour) return str;
 

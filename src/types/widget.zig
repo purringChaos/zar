@@ -1,7 +1,7 @@
 const interface = @import("interfaces");
 const Interface = interface.Interface;
 const SelfType = interface.SelfType;
-const Info = @import("info.zig").Info;
+const Info = @import("info.zig");
 
 pub const Widget = struct {
     const IFace = Interface(struct {
@@ -10,7 +10,7 @@ pub const Widget = struct {
         start: fn (*SelfType) anyerror!void,
     }, interface.Storage.NonOwning);
     iface: IFace,
-    pub fn init(impl_ptr: var) Widget {
+    pub fn init(impl_ptr: anytype) Widget {
         return .{ .iface = try IFace.init(.{impl_ptr}) };
     }
     pub fn name(self: *Widget) []const u8 {

@@ -1,7 +1,8 @@
 const std = @import("std");
-const Info = @import("../../types/info.zig").Info;
+const Info = @import("../../types/info.zig");
 const Bar = @import("../../types/bar.zig").Bar;
 const colour = @import("../../formatting/colour.zig").colour;
+const comptimeColour = @import("../../formatting/colour.zig").colour;
 
 const MemInfo = struct {
     memTotal: u64,
@@ -30,7 +31,7 @@ fn formatMemoryPercent(allocator: *std.mem.Allocator, percent: f64) ![]const u8 
     } else {
         percentColour = "green";
     }
-    const percentString = try std.fmt.allocPrint(allocator, "{d:.3}{}", .{ percent, colour(allocator, "accentdark", "%") });
+    const percentString = try std.fmt.allocPrint(allocator, "{d:.3}{}", .{ percent, comptimeColour(allocator, "accentdark", "%") });
 
     return colour(allocator, percentColour, percentString);
 }
@@ -79,7 +80,6 @@ fn fetchTotalMemory() !MemInfo {
 
 pub const MemoryWidget = struct {
     bar: *Bar,
-    allocator: *std.mem.Allocator,
     pub fn name(self: *MemoryWidget) []const u8 {
         return "mem";
     }
@@ -92,9 +92,9 @@ pub const MemoryWidget = struct {
     }
 
     fn update_bar(self: *MemoryWidget) !void {
-        var arena = std.heap.ArenaAllocator.init(self.allocator);
-        defer arena.deinit();
-        var allocator = &arena.allocator;
+        var buffer: [512]u8 = undefined;
+        var fba = std.heap.FixedBufferAllocator.init(&buffer);
+        var allocator = &fba.allocator;
         const memInfo = try fetchTotalMemory();
         try self.bar.add(Info{
             .name = "mem",
@@ -114,9 +114,8 @@ pub const MemoryWidget = struct {
     }
 };
 
-pub inline fn New(allocator: *std.mem.Allocator, bar: *Bar) MemoryWidget {
+pub inline fn New(bar: *Bar) MemoryWidget {
     return MemoryWidget{
-        .allocator = allocator,
         .bar = bar,
     };
 }

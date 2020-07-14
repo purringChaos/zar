@@ -1,5 +1,5 @@
 const std = @import("std");
-const Info = @import("../../types/info.zig").Info;
+const Info = @import("../../types/info.zig");
 
 pub const TextWidget = struct {
     name: []const u8,
