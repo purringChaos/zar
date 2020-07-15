@@ -1,5 +1,6 @@
 const std = @import("std");
 const Info = @import("../../types/info.zig");
+const MouseEvent = @import("../../types/mouseevent.zig");
 
 pub const TextWidget = struct {
     name: []const u8,
@@ -15,6 +16,7 @@ pub const TextWidget = struct {
             .markup = "pango",
         };
     }
+    pub fn mouse_event(self: *TextWidget, event: MouseEvent) void {}
 
     pub fn start(self: *TextWidget) anyerror!void {}
 };

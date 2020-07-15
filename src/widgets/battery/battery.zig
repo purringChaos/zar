@@ -4,6 +4,7 @@ const Bar = @import("../../types/bar.zig").Bar;
 const fs = std.fs;
 const cwd = fs.cwd;
 const colour = @import("../../formatting/colour.zig").colour;
+const MouseEvent = @import("../../types/mouseevent.zig");
 
 pub const PowerPaths = struct {
     status_path: []const u8 = "",
@@ -43,6 +44,9 @@ pub const BatteryWidget = struct {
             .markup = "pango",
         };
     }
+
+    pub fn mouse_event(self: *BatteryWidget, event: MouseEvent) void {}
+
     pub fn get_power_paths(self: *BatteryWidget, provided_allocator: *std.mem.Allocator) anyerror!PowerPaths {
         var arena = std.heap.ArenaAllocator.init(provided_allocator);
         defer arena.deinit();

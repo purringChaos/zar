@@ -11,7 +11,7 @@ const DebugAllocator = @import("debug_allocator.zig");
 const Info = @import("types/info.zig");
 
 pub fn main() !void {
-    const debug: bool = true;
+    const debug: bool = false;
     var allocator: *std.mem.Allocator = undefined;
     var dbgAlloc: *DebugAllocator = undefined;
     if (debug) {

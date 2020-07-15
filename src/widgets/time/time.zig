@@ -3,6 +3,7 @@ const Info = @import("../../types/info.zig");
 const Bar = @import("../../types/bar.zig").Bar;
 const time = @import("time");
 const colour = @import("../../formatting/colour.zig").colour;
+const MouseEvent = @import("../../types/mouseevent.zig");
 
 pub const TimeWidget = struct {
     bar: *Bar,
@@ -18,6 +19,8 @@ pub const TimeWidget = struct {
             .markup = "pango",
         };
     }
+
+    pub fn mouse_event(self: *TimeWidget, event: MouseEvent) void {}
 
     pub fn start(self: *TimeWidget) anyerror!void {
         while (self.bar.keep_running()) {

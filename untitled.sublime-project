@@ -8,7 +8,7 @@
 			"path": "/home/kitteh/bar"
 		},
 		{
-			"path": "/home/kitteh/zig-linux-x86_64-0.6.0+485231dea/lib/zig/std"
+			"path": "/home/kitteh/zig/lib/std"
 		}
 	],
 	"settings":

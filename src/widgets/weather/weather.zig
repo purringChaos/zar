@@ -6,6 +6,7 @@ const Info = @import("../../types/info.zig");
 const Bar = @import("../../types/bar.zig").Bar;
 const colour = @import("../../formatting/colour.zig").colour;
 const DebugAllocator = @import("../../debug_allocator.zig");
+const MouseEvent = @import("../../types/mouseevent.zig");
 
 const WeatherData = struct {
     temp: u16,
@@ -30,6 +31,8 @@ pub const WeatherWidget = struct {
             .markup = "pango",
         };
     }
+
+    pub fn mouse_event(self: *WeatherWidget, event: MouseEvent) void {}
 
     fn get_weather_info(self: *WeatherWidget, allocator: *std.mem.Allocator) !WeatherData {
         // this will allocate some memory but it will be freed by the time it is returned.

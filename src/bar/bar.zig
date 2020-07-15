@@ -1,7 +1,7 @@
 const std = @import("std");
 const Widget = @import("../types/widget.zig").Widget;
 const Info = @import("../types/info.zig");
-const MouseEvent = @import("../types/mouseevent.zig").MouseEvent;
+const MouseEvent = @import("../types/mouseevent.zig");
 
 const terminal_version = @import("build_options").terminal_version;
 
@@ -72,16 +72,15 @@ pub const Bar = struct {
                 var line = l;
                 if (std.mem.eql(u8, line, "[")) continue;
                 if (line[0] == ',') line = line[1..line.len];
-                std.debug.print("{}\n", .{line});
-
                 const parseOptions = std.json.ParseOptions{ .allocator = allocator };
                 const data = try std.json.parse(MouseEvent, &std.json.TokenStream.init(line), parseOptions);
-                std.debug.print("{}\n", .{data});
+                for (self.widgets) |w| {
+                    if (std.mem.eql(u8, w.name(), data.name)) {
+                        w.mouse_event(data) catch {};
+                    }
+                }
                 std.json.parseFree(MouseEvent, data, parseOptions);
             }
-
-            //std.time.sleep(5000 * std.time.ns_per_ms);
-            //return;
         }
     }
     pub fn keep_running(self: *Bar) bool {
