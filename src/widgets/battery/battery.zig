@@ -94,8 +94,6 @@ pub const BatteryWidget = struct {
         var fba = std.heap.FixedBufferAllocator.init(&buffer);
         var ppallocator = &fba.allocator;
         const pp = try self.get_power_paths(ppallocator);
-        std.debug.print("{}\n", .{pp});
-
         while (self.bar.keep_running()) {
             var arena = std.heap.ArenaAllocator.init(self.allocator);
             defer arena.deinit();
@@ -149,13 +147,13 @@ pub const BatteryWidget = struct {
             var watts_info: []const u8 = "";
 
             if (can_get_watts) {
-                watts_info = try colour(allocator, "purple", try std.fmt.allocPrint(allocator, " {}{d:0<2}W", .{ sign, watts }));
+                watts_info = try colour(allocator, "purple", try std.fmt.allocPrint(allocator, " {}{d:.2}W", .{ sign, watts }));
             }
 
             var bat_info = try std.fmt.allocPrint(allocator, "{} {} {}{}{}", .{
                 colour(allocator, "accentlight", "bat"),
                 descriptor,
-                colour(allocator, power_colour, try std.fmt.allocPrint(allocator, "{d:0<2}", .{capacity})),
+                colour(allocator, power_colour, try std.fmt.allocPrint(allocator, "{d:.2}", .{capacity})),
                 colour(allocator, "accentdark", "%"),
                 watts_info,
             });

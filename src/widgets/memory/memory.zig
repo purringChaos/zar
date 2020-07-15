@@ -179,7 +179,7 @@ pub const MemoryWidget = struct {
     pub fn start(self: *MemoryWidget) anyerror!void {
         while (self.bar.keep_running()) {
             self.update_bar() catch {};
-            std.time.sleep(250 * std.time.ns_per_ms);
+            std.time.sleep(500 * std.time.ns_per_ms);
         }
     }
 };

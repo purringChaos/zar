@@ -2,7 +2,7 @@ const std = @import("std");
 const Widget = @import("../types/widget.zig").Widget;
 const Info = @import("../types/info.zig");
 const MouseEvent = @import("../types/mouseevent.zig");
-
+const os = std.os;
 const terminal_version = @import("build_options").terminal_version;
 
 pub const Bar = struct {
@@ -16,12 +16,10 @@ pub const Bar = struct {
         self.running = true;
         if (!terminal_version) try self.out_file.writer().writeAll("{\"version\": 1,\"click_events\": true}\n[\n");
         for (self.widgets) |w| {
-            std.debug.warn("Adding Initial Info: {}\n", .{w.name()});
             try self.infos.append(try self.dupe_info(w.initial_info()));
         }
         try self.print_infos(true);
         for (self.widgets) |w| {
-            std.debug.warn("Starting widget: {}\n", .{w.name()});
             var thread = try std.Thread.spawn(w, Widget.start);
         }
         var thread = try std.Thread.spawn(self, Bar.process);
@@ -62,6 +60,64 @@ pub const Bar = struct {
     }
 
     fn process(self: *Bar) !void {
+        if (terminal_version) {
+            try self.out_file.writer().writeAll("\u{001b}[?1000;1006;1015h");
+
+            var termios = try os.tcgetattr(0);
+            termios.iflag &= ~@as(
+                os.tcflag_t,
+                os.IGNBRK | os.BRKINT | os.PARMRK | os.ISTRIP |
+                os.INLCR | os.IGNCR | os.ICRNL | os.IXON,
+            );
+            termios.lflag |= ~@as(os.tcflag_t, (os.ECHO | os.ICANON));
+            termios.lflag &= os.ISIG;
+
+            try os.tcsetattr(0, .FLUSH, termios);
+
+            while (true) {
+                var line_buffer: [128]u8 = undefined;
+
+                const line_opt = try std.io.getStdIn().inStream().readUntilDelimiterOrEof(&line_buffer, 0x1b);
+                if (line_opt) |l| {
+                    if (l.len < 2) continue;
+                    var it = std.mem.tokenize(l, ";");
+                    _ = it.next();
+                    const n = try std.fmt.parseInt(u64, it.next().?, 10);
+                    var y = it.next().?;
+                    if (y[y.len - 1] == 'm') continue;
+
+                    var xe: u64 = 0;
+                    for (self.infos.items) |infoItem, index| {
+                        var isEscape: bool = false;
+                        for (infoItem.full_text) |char| {
+                            if (char == 0x1b) {
+                                isEscape = true;
+                                continue;
+                            }
+                            if (isEscape and char != 'm') {
+                                continue;
+                            }
+                            if (char == 'm' and isEscape) {
+                                isEscape = false;
+                                continue;
+                            }
+                            xe = xe + 1;
+                        }
+                        if (n <= xe) {
+                            for (self.widgets) |w| {
+                                if (std.mem.eql(u8, w.name(), infoItem.name)) {
+                                    w.mouse_event(.{ .button = .LeftClick }) catch {};
+                                }
+                            }
+                            //std.debug.print("Info Item Clicky{}\n", .{infoItem.name});
+                            break;
+                        }
+                        xe = xe + 1;
+                    }
+                }
+            }
+        }
+
         var line_buffer: [512]u8 = undefined;
         while (self.running) {
             var arena = std.heap.ArenaAllocator.init(self.allocator);
@@ -71,6 +127,7 @@ pub const Bar = struct {
             if (line_opt) |l| {
                 var line = l;
                 if (std.mem.eql(u8, line, "[")) continue;
+                if (line.len == 0) continue;
                 if (line[0] == ',') line = line[1..line.len];
                 const parseOptions = std.json.ParseOptions{ .allocator = allocator };
                 const data = try std.json.parse(MouseEvent, &std.json.TokenStream.init(line), parseOptions);
