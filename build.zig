@@ -9,13 +9,19 @@ pub fn build(b: *Builder) void {
         "disable_colour",
         "no colour",
     ) orelse false;
+    exe.addBuildOption(bool, "disable_colour", disable_colour);
     const terminal_version = b.option(
         bool,
         "terminal_version",
         "terminal-only version",
     ) orelse false;
     exe.addBuildOption(bool, "terminal_version", terminal_version);
-    exe.addBuildOption(bool, "disable_colour", disable_colour);
+    const debug_allocator = b.option(
+        bool,
+        "debug_allocator",
+        "use debug allocator for testing",
+    ) orelse false;
+    exe.addBuildOption(bool, "debug_allocator", debug_allocator);
 
     //exe.strip = true;
     exe.addPackage(.{

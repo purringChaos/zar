@@ -9,6 +9,12 @@
 		},
 		{
 			"path": "/home/kitteh/zig/lib/std"
+		},
+		{
+			"path": "/home/kitteh/KittehSublimeTheme"
+		},
+		{
+			"path": "/home/kitteh/.config/sublime-text-3/Packages/Zig Language"
 		}
 	],
 	"settings":

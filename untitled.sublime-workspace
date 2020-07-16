@@ -89,6 +89,10 @@
 		"selected_items":
 		[
 			[
+				"UI",
+				"UI: Select Theme"
+			],
+			[
 				"lsp",
 				"LSP: Disable Language Server in Project"
 			],
@@ -179,25 +183,33 @@
 	},
 	"file_history":
 	[
-		"/home/kitteh/zar/src/widgets/time/time.zig",
-		"/home/kitteh/zar/src/widgets/memory/memory.zig",
+		"/home/kitteh/KittehSublimeTheme/Kitteh.sublime-theme",
+		"/home/kitteh/zar/src/bar/terminalbar.zig",
+		"/home/kitteh/zar/src/types/loopingcounter.zig",
+		"/home/kitteh/zig/lib/std/hash_map.zig",
+		"/home/kitteh/zig/lib/std/time.zig",
+		"/home/kitteh/zar/src/main.zig",
 		"/home/kitteh/zar/src/formatting/colour.zig",
 		"/home/kitteh/bar/memory.go",
+		"/home/kitteh/zar/src/bar/bar.zig",
+		"/home/kitteh/zar/src/widgets/weather/weather.zig",
+		"/home/kitteh/zar/src/widgets/battery/battery.zig",
+		"/home/kitteh/zar/src/widgets/text/text.zig",
+		"/home/kitteh/zar/src/widgets/time/time.zig",
+		"/home/kitteh/zar/src/widgets/memory/memory.zig",
+		"/home/kitteh/zar/src/types/mouseevent.zig",
 		"/home/kitteh/zig-linux-x86_64-0.6.0+485231dea/lib/zig/std/std.zig",
 		"/home/kitteh/zar/src/debug_allocator.zig",
-		"/home/kitteh/zar/src/bar/bar.zig",
 		"/home/kitteh/bar/battery.go",
 		"/home/kitteh/zar/build.zig",
 		"/home/kitteh/zar/deps/time/src/time.zig",
 		"/home/kitteh/bar/time.go",
-		"/home/kitteh/zar/src/widgets/weather/weather.zig",
 		"/home/kitteh/bar/main.go",
 		"/home/kitteh/zig-linux-x86_64-0.6.0+485231dea/lib/zig/std/valgrind/memcheck.zig",
 		"/home/kitteh/zig-linux-x86_64-0.6.0+485231dea/lib/zig/std/progress.zig",
 		"/home/kitteh/zig-linux-x86_64-0.6.0+485231dea/lib/zig/std/mutex.zig",
 		"/home/kitteh/zig-linux-x86_64-0.6.0+485231dea/lib/zig/std/meta.zig",
 		"/home/kitteh/zar/src/types/info.zig",
-		"/home/kitteh/zar/src/widgets/text/text.zig",
 		"/home/kitteh/bar/bar.go",
 		"/home/kitteh/zar/src/types/bar.zig",
 		"/home/kitteh/zar/src/types/widget.zig",
@@ -220,9 +232,13 @@
 	},
 	"find_state":
 	{
-		"case_sensitive": false,
+		"case_sensitive": true,
 		"find_history":
 		[
+			"#fe4450",
+			"keyword",
+			"Bar",
+			"osICANON",
 			".mutex",
 			"else return",
 			") return",
@@ -283,6 +299,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"TerminalBar",
 			".items_mutex",
 			"else",
 			")",
@@ -303,7 +320,7 @@
 	},
 	"incremental_find":
 	{
-		"height": 28.0
+		"height": 54.0
 	},
 	"input":
 	{
@@ -351,7 +368,7 @@
 	"pinned_build_system": "",
 	"replace":
 	{
-		"height": 52.0
+		"height": 94.0
 	},
 	"save_all_on_build": false,
 	"select_file":

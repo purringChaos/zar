@@ -4,6 +4,7 @@ const Info = @import("../types/info.zig");
 const MouseEvent = @import("../types/mouseevent.zig");
 const os = std.os;
 const terminal_version = @import("build_options").terminal_version;
+const debug_allocator = @import("build_options").debug_allocator;
 
 pub const Bar = struct {
     allocator: *std.mem.Allocator,
@@ -32,92 +33,99 @@ pub const Bar = struct {
         self.infos.deinit();
     }
 
+    inline fn print_i3bar_infos(self: *Bar) !void {
+        try self.out_file.writer().writeAll("[");
+        for (self.infos.items) |info, i| {
+            try std.json.stringify(info, .{}, self.out_file.writer());
+
+            if (i < self.infos.items.len - 1) {
+                try self.out_file.writer().writeAll(",");
+            }
+        }
+        try self.out_file.writer().writeAll("],\n");
+    }
+
+    inline fn print_terminal_infos(self: *Bar) !void {
+        for (self.infos.items) |info, i| {
+            try self.out_file.writer().writeAll(info.full_text);
+            if (i < self.infos.items.len - 1) {
+                try self.out_file.writer().writeAll("|");
+            }
+        }
+        try self.out_file.writer().writeAll("\n");
+    }
+
     fn print_infos(self: *Bar, should_lock: bool) !void {
         if (should_lock) {
             const lock = self.items_mutex.acquire();
             defer lock.release();
         }
-        if (!terminal_version) try self.out_file.writer().writeAll("[");
-        for (self.infos.items) |info, i| {
-            if (!terminal_version) {
-                try std.json.stringify(info, .{}, self.out_file.writer());
-
-                if (i < self.infos.items.len - 1) {
-                    try self.out_file.writer().writeAll(",");
-                }
-            } else {
-                try self.out_file.writer().writeAll(info.full_text);
-                if (i < self.infos.items.len - 1) {
-                    try self.out_file.writer().writeAll("|");
-                }
-            }
-        }
-        if (!terminal_version) {
-            try self.out_file.writer().writeAll("],\n");
+        if (terminal_version) {
+            self.print_terminal_infos() catch {};
         } else {
-            try self.out_file.writer().writeAll("\n");
+            self.print_i3bar_infos() catch {};
         }
     }
 
-    fn process(self: *Bar) !void {
-        if (terminal_version) {
-            try self.out_file.writer().writeAll("\u{001b}[?1000;1006;1015h");
+    inline fn terminal_input_process(self: *Bar) !void {
+        try self.out_file.writer().writeAll("\u{001b}[?1000;1006;1015h");
 
-            var termios = try os.tcgetattr(0);
-            termios.iflag &= ~@as(
-                os.tcflag_t,
-                os.IGNBRK | os.BRKINT | os.PARMRK | os.ISTRIP |
-                os.INLCR | os.IGNCR | os.ICRNL | os.IXON,
-            );
-            termios.lflag |= ~@as(os.tcflag_t, (os.ECHO | os.ICANON));
-            termios.lflag &= os.ISIG;
+        var termios = try os.tcgetattr(0);
+        termios.iflag &= ~@as(
+            os.tcflag_t,
+            os.IGNBRK | os.BRKINT | os.PARMRK | os.ISTRIP |
+            os.INLCR | os.IGNCR | os.ICRNL | os.IXON,
+        );
+        termios.lflag |= ~@as(os.tcflag_t, (os.ECHO | os.ICANON));
+        termios.lflag &= os.ISIG;
 
-            try os.tcsetattr(0, .FLUSH, termios);
+        try os.tcsetattr(0, .FLUSH, termios);
 
-            while (true) {
-                var line_buffer: [128]u8 = undefined;
+        while (true) {
+            var line_buffer: [128]u8 = undefined;
 
-                const line_opt = try std.io.getStdIn().inStream().readUntilDelimiterOrEof(&line_buffer, 0x1b);
-                if (line_opt) |l| {
-                    if (l.len < 2) continue;
-                    var it = std.mem.tokenize(l, ";");
-                    _ = it.next();
-                    const n = try std.fmt.parseInt(u64, it.next().?, 10);
-                    var y = it.next().?;
-                    if (y[y.len - 1] == 'm') continue;
+            const line_opt = try std.io.getStdIn().inStream().readUntilDelimiterOrEof(&line_buffer, 0x1b);
+            if (line_opt) |l| {
+                if (l.len < 2) continue;
+                var it = std.mem.tokenize(l, ";");
+                _ = it.next();
+                const n = try std.fmt.parseInt(u64, it.next().?, 10);
+                var y = it.next().?;
+                if (y[y.len - 1] == 'm') continue;
 
-                    var xe: u64 = 0;
-                    for (self.infos.items) |infoItem, index| {
-                        var isEscape: bool = false;
-                        for (infoItem.full_text) |char| {
-                            if (char == 0x1b) {
-                                isEscape = true;
-                                continue;
-                            }
-                            if (isEscape and char != 'm') {
-                                continue;
-                            }
-                            if (char == 'm' and isEscape) {
-                                isEscape = false;
-                                continue;
-                            }
-                            xe = xe + 1;
+                var xe: u64 = 0;
+                for (self.infos.items) |infoItem, index| {
+                    var isEscape: bool = false;
+                    for (infoItem.full_text) |char| {
+                        if (char == 0x1b) {
+                            isEscape = true;
+                            continue;
                         }
-                        if (n <= xe) {
-                            for (self.widgets) |w| {
-                                if (std.mem.eql(u8, w.name(), infoItem.name)) {
-                                    w.mouse_event(.{ .button = .LeftClick }) catch {};
-                                }
-                            }
-                            //std.debug.print("Info Item Clicky{}\n", .{infoItem.name});
-                            break;
+                        if (isEscape and char != 'm') {
+                            continue;
+                        }
+                        if (char == 'm' and isEscape) {
+                            isEscape = false;
+                            continue;
                         }
                         xe = xe + 1;
                     }
+                    if (n <= xe) {
+                        for (self.widgets) |w| {
+                            if (std.mem.eql(u8, w.name(), infoItem.name)) {
+                                w.mouse_event(.{ .button = .LeftClick }) catch {};
+                            }
+                        }
+                        //std.debug.print("Info Item Clicky{}\n", .{infoItem.name});
+                        break;
+                    }
+                    xe = xe + 1;
                 }
             }
         }
+    }
 
+    inline fn i3bar_input_process(self: *Bar) !void {
         var line_buffer: [512]u8 = undefined;
         while (self.running) {
             var arena = std.heap.ArenaAllocator.init(self.allocator);
@@ -140,31 +148,45 @@ pub const Bar = struct {
             }
         }
     }
+
+    fn process(self: *Bar) !void {
+        if (debug_allocator) {
+            std.time.sleep(std.time.ns_per_ms * 2000 * 5);
+            if (true) return;
+        }
+
+        if (terminal_version) {
+            self.terminal_input_process() catch {};
+        } else {
+            self.i3bar_input_process() catch {};
+        }
+    }
     pub fn keep_running(self: *Bar) bool {
         return self.running;
     }
-    pub fn free_info(self: *Bar, info: Info) !void {
+    fn free_info(self: *Bar, info: Info) !void {
         self.allocator.free(info.name);
         self.allocator.free(info.full_text);
     }
 
-    pub fn dupe_info(self: *Bar, info: Info) !Info {
+    /// In order to store the info and have Widgets not need to care about
+    /// memory lifetime, we duplicate the info fields.
+    fn dupe_info(self: *Bar, info: Info) !Info {
+        // TODO: name should be comptime known, rework.
         const new_name = try self.allocator.alloc(u8, info.name.len);
         std.mem.copy(u8, new_name, info.name);
         const new_text = try self.allocator.alloc(u8, info.full_text.len);
         std.mem.copy(u8, new_text, info.full_text);
-        var i = Info{
+        return Info{
             .name = new_name,
             .full_text = new_text,
             .markup = "pango",
         };
-        return i;
     }
 
     pub fn add(self: *Bar, info: Info) !void {
         const lock = self.items_mutex.acquire();
         defer lock.release();
-        //std.debug.warn("info: {}\n", .{info.name});
         for (self.infos.items) |infoItem, index| {
             if (std.mem.eql(u8, infoItem.name, info.name)) {
                 if (std.mem.eql(u8, infoItem.full_text, info.full_text)) {

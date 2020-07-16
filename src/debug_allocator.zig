@@ -85,12 +85,14 @@ allocation_strack_addresses: std.AutoHashMap(usize, [stack_addresses_size]usize)
 
 // Interface implementation
 allocator: std.mem.Allocator,
+mutex: std.Mutex,
 
 pub fn init(base_allocator: *std.mem.Allocator, max_bytes: usize) DebugAllocator {
     return .{
         .base_allocator = base_allocator,
         .info = .{},
         .max_bytes = max_bytes,
+        .mutex = std.Mutex.init(),
         .allocation_strack_addresses = std.AutoHashMap(usize, [stack_addresses_size]usize).init(base_allocator),
         .allocator = .{
             .allocFn = alloc,
@@ -105,6 +107,8 @@ pub fn deinit(self: *DebugAllocator) void {
 
 fn alloc(allocator: *std.mem.Allocator, len: usize, ptr_align: u29, len_align: u29) error{OutOfMemory}![]u8 {
     const self = @fieldParentPtr(DebugAllocator, "allocator", allocator);
+    const lock = self.mutex.acquire();
+    defer lock.release();
 
     const ptr = try self.base_allocator.callAllocFn(len, ptr_align, len_align);
     self.info.allocation_stats.addSample(ptr.len);
@@ -132,6 +136,8 @@ fn alloc(allocator: *std.mem.Allocator, len: usize, ptr_align: u29, len_align: u
 
 fn resize(allocator: *std.mem.Allocator, old_mem: []u8, new_size: usize, len_align: u29) error{OutOfMemory}!usize {
     const self = @fieldParentPtr(DebugAllocator, "allocator", allocator);
+    const lock = self.mutex.acquire();
+    defer lock.release();
 
     if (old_mem.len == 0) {
         std.log.debug(.debug_alloc, "Trying to resize empty slice\n", .{});
