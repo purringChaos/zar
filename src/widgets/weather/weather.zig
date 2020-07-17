@@ -5,6 +5,8 @@ const hzzp = @import("hzzp");
 const Info = @import("../../types/info.zig");
 const Bar = @import("../../types/bar.zig").Bar;
 const colour = @import("../../formatting/colour.zig").colour;
+const comptimeColour = @import("../../formatting/colour.zig").comptimeColour;
+
 const DebugAllocator = @import("../../debug_allocator.zig");
 const MouseEvent = @import("../../types/mouseevent.zig");
 
@@ -60,6 +62,8 @@ pub const WeatherWidget = struct {
         var main: []const u8 = "";
         var message: []const u8 = "";
 
+
+        // This parser is clunky, it may  be worth a rewrite but it seems like it optimizes decently.
         while (try client.readEvent()) |event| {
             switch (event) {
                 .chunk => |chunk| {
@@ -93,7 +97,8 @@ pub const WeatherWidget = struct {
                                     message = str;
                                 }
                                 if (isNextCode) {
-                                    // why the fuck would you make code both a string and a int are you wanting me to question my sanity???
+                                    // Why the fuck would you make code both a string and a int.
+                                    // Are you wanting me to question my sanity???
                                     isNextCode = false;
                                     code = try std.fmt.parseInt(i16, str, 10);
                                 }
@@ -125,7 +130,6 @@ pub const WeatherWidget = struct {
         var arenacator = &arena.allocator;
         if (self.get_weather_info(arenacator)) |i| {
             inf = i;
-            //std.debug.print("{}", .{i});
         } else |err| switch (err) {
             error.TemporaryNameServerFailure => {
                 try self.bar.add(Info{
@@ -169,6 +173,11 @@ pub const WeatherWidget = struct {
         var temp = inf.temp;
         var main = inf.main;
 
+
+        // Please note that these are *my* personal temp preferences.
+        // TODO: it may be worth making a way for the user to change this with a function on init.
+        // If you happen to read this and you plan on inviting me round your house one day,
+        // then feel free to set your A/C to a optimal temp as shown below.
         var tempColour: []const u8 = "green";
         if (temp >= 20) {
             tempColour = "red";
@@ -183,10 +192,10 @@ pub const WeatherWidget = struct {
         var i = Info{
             .name = self.name,
             .full_text = try std.fmt.allocPrint(arenacator, "{} {}{}{} {}", .{
-                colour(arenacator, "accentlight", "weather"),
+                comptimeColour("accentlight", "weather"),
                 colour(arenacator, tempColour, try std.fmt.allocPrint(arenacator, "{}", .{temp})),
-                colour(arenacator, "accentlight", "°"),
-                colour(arenacator, "accentdark", "C"),
+                comptimeColour("accentlight", "°"),
+                comptimeColour("accentdark", "C"),
                 colour(arenacator, "green", main),
             }),
             .markup = "pango",
@@ -207,6 +216,9 @@ pub inline fn New(allocator: *std.mem.Allocator, bar: *Bar, comptime location: [
         .allocator = allocator,
         .bar = bar,
         .name = "weather " ++ location,
+        // Yeah I know I'm leaking a token here.
+        // So what? It ain't my token.
+        // It was the first result on github code search for "openweathermap appid"
         .weather_api_url = "/data/2.5/weather?q=" ++ location ++ "&appid=dcea3595afe693d1c17846141f58ea10&units=metric",
     };
 }

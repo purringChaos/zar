@@ -2,7 +2,7 @@ const std = @import("std");
 const Info = @import("../../types/info.zig");
 const Bar = @import("../../types/bar.zig").Bar;
 const colour = @import("../../formatting/colour.zig").colour;
-const comptimeColour = @import("../../formatting/colour.zig").colour;
+const comptimeColour = @import("../../formatting/colour.zig").comptimeColour;
 const MouseEvent = @import("../../types/mouseevent.zig");
 const LoopingCounter = @import("../../types/loopingcounter.zig").LoopingCounter;
 
@@ -35,7 +35,7 @@ fn formatMemoryPercent(allocator: *std.mem.Allocator, percent: f64) ![]const u8 
     } else {
         percentColour = "green";
     }
-    const percentString = try std.fmt.allocPrint(allocator, "{d:.3}{}", .{ percent, comptimeColour(allocator, "accentdark", "%") });
+    const percentString = try std.fmt.allocPrint(allocator, "{d:.3}{}", .{ percent, comptimeColour("accentdark", "%") });
 
     return colour(allocator, percentColour, percentString);
 }
@@ -122,49 +122,51 @@ pub const MemoryWidget = struct {
         var allocator = &fba.allocator;
         const memInfo = try fetchTotalMemory();
         var text: []const u8 = " ";
+
+        // And this is why I love the looping counter.
         if (self.lc.get() == 0) {
             text = try std.fmt.allocPrint(allocator, "{} {}", .{
-                colour(allocator, "accentlight", "mem"),
+                comptimeColour("accentlight", "mem"),
                 formatMemoryPercent(allocator, (@intToFloat(f64, memInfo.memTotal - memInfo.memFree - memInfo.buffers - memInfo.cached) / @intToFloat(f64, memInfo.memTotal)) * 100),
             });
         } else if (self.lc.get() == 1) {
             text = try std.fmt.allocPrint(allocator, "{} {}", .{
-                colour(allocator, "accentlight", "swap"),
+                comptimeColour("accentlight", "swap"),
                 formatMemoryPercent(allocator, (@intToFloat(f64, memInfo.swapTotal - memInfo.swapFree) / @intToFloat(f64, memInfo.swapTotal)) * 100),
             });
         } else if (self.lc.get() == 2) {
             text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
-                colour(allocator, "accentlight", "mem free"),
+                comptimeColour("accentlight", "mem free"),
                 kibibytesToMegabytes(memInfo.memFree),
             });
         } else if (self.lc.get() == 3) {
             text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
-                colour(allocator, "accentlight", "swap free"),
+                comptimeColour("accentlight", "swap free"),
                 kibibytesToMegabytes(memInfo.swapFree),
             });
         } else if (self.lc.get() == 4) {
             text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
-                colour(allocator, "accentlight", "mem used"),
+                comptimeColour("accentlight", "mem used"),
                 kibibytesToMegabytes(memInfo.memTotal - memInfo.memFree - memInfo.buffers - memInfo.cached),
             });
         } else if (self.lc.get() == 5) {
             text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
-                colour(allocator, "accentlight", "swap used"),
+                comptimeColour("accentlight", "swap used"),
                 kibibytesToMegabytes(memInfo.swapTotal - memInfo.swapFree),
             });
         } else if (self.lc.get() == 6) {
             text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
-                colour(allocator, "accentlight", "mem cache"),
+                comptimeColour("accentlight", "mem cache"),
                 kibibytesToMegabytes(memInfo.cached),
             });
         } else if (self.lc.get() == 7) {
             text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
-                colour(allocator, "accentlight", "swap cache"),
+                comptimeColour("accentlight", "swap cache"),
                 kibibytesToMegabytes(memInfo.swapCached),
             });
         } else if (self.lc.get() == 8) {
             text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
-                colour(allocator, "accentlight", "mem buf"),
+                comptimeColour("accentlight", "mem buf"),
                 kibibytesToMegabytes(memInfo.buffers),
             });
         }

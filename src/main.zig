@@ -18,19 +18,20 @@ pub fn main() !void {
     var allocator: *std.mem.Allocator = undefined;
     var dbgAlloc: *DebugAllocator = undefined;
     if (debug_allocator) {
+        // Warning that DebugAllocator can get a little crashy.
         dbgAlloc = &DebugAllocator.init(std.heap.page_allocator, 8192 * 8192);
         allocator = &dbgAlloc.allocator;
     } else {
         allocator = std.heap.page_allocator;
     }
-    var bar = barImpl.InitBar(allocator);
+    var bar = barImpl.initBar(allocator);
     var br = Bar.init(&bar);
 
     const widgets = [_]*Widget{
         //&Widget.init(&textWidget.New("owo", "potato")), // 4KiB
         //&Widget.init(&textWidget.New("uwu", "tomato")), // 4KiB
         &Widget.init(&memoryWidget.New(&br)), // 4.08KiB
-        &Widget.init(&weatherWidget.New(allocator, &br, "Stockholm")), // 16.16KiB
+        &Widget.init(&weatherWidget.New(allocator, &br, @import("build_options").weather_location)), // 16.16KiB
         &Widget.init(&batteryWidget.New(allocator, &br)), // 12.11KiB
         &Widget.init(&timeWidget.New(allocator, &br)), // 32.46KiB
     };

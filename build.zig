@@ -9,6 +9,7 @@ pub fn build(b: *Builder) void {
         "disable_colour",
         "no colour",
     ) orelse false;
+
     exe.addBuildOption(bool, "disable_colour", disable_colour);
     const terminal_version = b.option(
         bool,
@@ -22,6 +23,14 @@ pub fn build(b: *Builder) void {
         "use debug allocator for testing",
     ) orelse false;
     exe.addBuildOption(bool, "debug_allocator", debug_allocator);
+    const weather_location = b.option(
+        []const u8,
+        "weather_location",
+        "weather_location",
+    ) orelse "\"\"";
+    exe.addBuildOption([]const u8, "weather_location", weather_location);
+
+
 
     //exe.strip = true;
     exe.addPackage(.{

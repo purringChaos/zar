@@ -28,6 +28,7 @@ const TerminalYellowColour = "\u{001b}[33m";
 const TerminalGreenColour = "\u{001b}[32m";
 const TerminalPurpleColour = "\u{001b}[35m";
 
+/// This colours a string but at comptime.
 pub fn comptimeColour(comptime clr: []const u8, comptime str: []const u8) []const u8 {
     if (disable_colour) return str;
 
@@ -38,7 +39,7 @@ pub fn comptimeColour(comptime clr: []const u8, comptime str: []const u8) []cons
             return "<span color=\"" ++ clr ++ "\">" ++ str ++ "</span>";
         }
     } else {
-        var colourText: []const u8 = "";
+        comptime var colourText: []const u8 = "";
         if (eql(u8, clr, "text")) {
             colourText = if (!terminal_version) TextColour else TerminalTextColour;
         } else if (eql(u8, clr, "dark")) {
@@ -61,13 +62,17 @@ pub fn comptimeColour(comptime clr: []const u8, comptime str: []const u8) []cons
             colourText = if (!terminal_version) GreenColour else TerminalGreenColour;
         } else if (eql(u8, clr, "purple")) {
             colourText = if (!terminal_version) PurpleColour else TerminalPurpleColour;
-        } else {
-            @compileError("colour not found");
+        }
+        if (colourText.len == 0) {
+            unreachable;
         }
         return comptimeColour(colourText, str);
     }
 }
 
+/// This colours a dynamic string at runtime.
+/// It may make more than one allocation,
+/// so put it on a ArenaAllocator so you can free what else it allocates.
 pub fn colour(alloc: *std.mem.Allocator, clr: []const u8, str: []const u8) ![]const u8 {
     if (disable_colour) return str;
 

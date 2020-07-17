@@ -5,6 +5,7 @@ const fs = std.fs;
 const cwd = fs.cwd;
 const colour = @import("../../formatting/colour.zig").colour;
 const MouseEvent = @import("../../types/mouseevent.zig");
+const comptimeColour = @import("../../formatting/colour.zig").comptimeColour;
 
 pub const PowerPaths = struct {
     status_path: []const u8 = "",
@@ -14,7 +15,9 @@ pub const PowerPaths = struct {
     voltage_now_path: []const u8 = "",
 };
 
-pub fn read_file_to_unsigned_int64(path: []const u8) u64 {
+pub fn readFileToUnsignedInt64(path: []const u8) u64 {
+    // Calculate the max length of a u64 encoded as a string at comptime
+    // adding 1 for newline and 1 for good luck.
     var buffer: [std.math.log10(std.math.maxInt(u64)) + 2]u8 = undefined;
     var file = fs.cwd().openFile(path, .{}) catch return 0;
     defer file.close();
@@ -22,7 +25,7 @@ pub fn read_file_to_unsigned_int64(path: []const u8) u64 {
     return std.fmt.parseInt(u64, buffer[0 .. siz - 1], 10) catch return 0;
 }
 
-pub fn read_file(path: []const u8) ![]const u8 {
+pub fn readFile(path: []const u8) ![]const u8 {
     var buffer: [128]u8 = undefined;
     var file = try fs.cwd().openFile(path, .{});
     defer file.close();
@@ -47,6 +50,7 @@ pub const BatteryWidget = struct {
 
     pub fn mouse_event(self: *BatteryWidget, event: MouseEvent) void {}
 
+    // Find all the paths for power info.
     pub fn get_power_paths(self: *BatteryWidget, provided_allocator: *std.mem.Allocator) anyerror!PowerPaths {
         var arena = std.heap.ArenaAllocator.init(provided_allocator);
         defer arena.deinit();
@@ -106,8 +110,8 @@ pub const BatteryWidget = struct {
             var sign: []const u8 = "?";
             var power_colour: []const u8 = "#ffffff";
 
-            const capacity = @intToFloat(f64, read_file_to_unsigned_int64(pp.capacity_path));
-            const status = try read_file(pp.status_path);
+            const capacity = @intToFloat(f64, readFileToUnsignedInt64(pp.capacity_path));
+            const status = try readFile(pp.status_path);
 
             if (capacity > 80) {
                 power_colour = "green";
@@ -120,22 +124,22 @@ pub const BatteryWidget = struct {
             }
 
             if (std.mem.eql(u8, status, "Charging")) {
-                descriptor = try colour(allocator, "green", "(C)");
+                descriptor = comptimeColour("green", "(C)");
                 sign = "+";
             } else if (std.mem.eql(u8, status, "Discharging")) {
                 descriptor = try colour(allocator, power_colour, "(D)");
                 sign = "-";
             } else if (std.mem.eql(u8, status, "Unknown")) {
-                descriptor = try colour(allocator, "yellow", "(U)");
+                descriptor = comptimeColour("yellow", "(U)");
                 sign = "?";
             }
 
             if (pp.power_now_path.len != 0) {
-                watts = @intToFloat(f64, read_file_to_unsigned_int64(pp.power_now_path)) / 1000000;
+                watts = @intToFloat(f64, readFileToUnsignedInt64(pp.power_now_path)) / 1000000;
                 can_get_watts = true;
             } else if (pp.current_now_path.len != 0 and pp.voltage_now_path.len != 0) {
-                const current_now = @intToFloat(f64, read_file_to_unsigned_int64(pp.current_now_path)) / 1000000;
-                const voltage_now = @intToFloat(f64, read_file_to_unsigned_int64(pp.voltage_now_path)) / 1000000;
+                const current_now = @intToFloat(f64, readFileToUnsignedInt64(pp.current_now_path)) / 1000000;
+                const voltage_now = @intToFloat(f64, readFileToUnsignedInt64(pp.voltage_now_path)) / 1000000;
                 if (current_now == 0 or voltage_now == 0) {
                     can_get_watts = false;
                 } else {
@@ -151,10 +155,10 @@ pub const BatteryWidget = struct {
             }
 
             var bat_info = try std.fmt.allocPrint(allocator, "{} {} {}{}{}", .{
-                colour(allocator, "accentlight", "bat"),
+                comptimeColour("accentlight", "bat"),
                 descriptor,
                 colour(allocator, power_colour, try std.fmt.allocPrint(allocator, "{d:.2}", .{capacity})),
-                colour(allocator, "accentdark", "%"),
+                comptimeColour("accentdark", "%"),
                 watts_info,
             });
 
