@@ -34,7 +34,7 @@ pub fn comptimeColour(comptime clr: []const u8, comptime str: []const u8) []cons
 
     if (clr[0] == '#' or clr[0] == '\u{001b}') {
         if (terminal_version) {
-            return crl ++ str ++ TerminalResetColour;
+            return clr ++ str ++ TerminalResetColour;
         } else {
             return "<span color=\"" ++ clr ++ "\">" ++ str ++ "</span>";
         }
