@@ -31,7 +31,7 @@ pub fn build(b: *Builder) void {
     if (weather_location.len == 0) {
         weather_location = "\"\"";
     } else if (weather_location[0] != '"') {
-        weather_location = std.fmt.allocPrint(std.heap.page_allocator, "\"{}\"", .{weather_location}) catch "\"\"";
+        weather_location = std.fmt.allocPrint(b.allocator, "\"{}\"", .{weather_location}) catch "\"\"";
     }
     exe.addBuildOption([]const u8, "weather_location", weather_location);
 
