@@ -33,10 +33,10 @@ pub fn main() !void {
         //&Widget.init(&textWidget.New("owo", "potato")), // 4KiB
         //&Widget.init(&textWidget.New("uwu", "tomato")), // 4KiB
         &Widget.init(&cpuWidget.New(&br)), // 4.08KiB
-        //&Widget.init(&memoryWidget.New(&br)), // 4.08KiB
-        //&Widget.init(&weatherWidget.New(allocator, &br, @import("build_options").weather_location)), // 16.16KiB
-        //&Widget.init(&batteryWidget.New(allocator, &br)), // 12.11KiB
-        //&Widget.init(&timeWidget.New(allocator, &br)), // 32.46KiB
+        &Widget.init(&memoryWidget.New(&br)), // 4.08KiB
+        &Widget.init(&weatherWidget.New(allocator, &br, @import("build_options").weather_location)), // 16.16KiB
+        &Widget.init(&batteryWidget.New(allocator, &br)), // 12.11KiB
+        &Widget.init(&timeWidget.New(allocator, &br)), // 32.46KiB
     };
     bar.widgets = widgets[0..];
     try br.start();

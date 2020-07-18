@@ -23,11 +23,16 @@ pub fn build(b: *Builder) void {
         "use debug allocator for testing",
     ) orelse false;
     exe.addBuildOption(bool, "debug_allocator", debug_allocator);
-    const weather_location = b.option(
+    var weather_location = b.option(
         []const u8,
         "weather_location",
         "weather_location",
-    ) orelse "\"\"";
+    ) orelse "";
+    if (weather_location.len == 0) {
+        weather_location = "\"\"";
+    } else if (weather_location[0] != '"') {
+        weather_location = std.fmt.allocPrint(std.heap.page_allocator, "\"{}\"", .{weather_location}) catch "\"\"";
+    }
     exe.addBuildOption([]const u8, "weather_location", weather_location);
 
 
