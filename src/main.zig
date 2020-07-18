@@ -9,6 +9,8 @@ const weatherWidget = @import("widgets/weather/weather.zig");
 const timeWidget = @import("widgets/time/time.zig");
 const batteryWidget = @import("widgets/battery/battery.zig");
 const memoryWidget = @import("widgets/memory/memory.zig");
+const cpuWidget = @import("widgets/memory/memory.zig");
+
 const DebugAllocator = @import("debug_allocator.zig");
 const Info = @import("types/info.zig");
 
@@ -30,6 +32,7 @@ pub fn main() !void {
     const widgets = [_]*Widget{
         //&Widget.init(&textWidget.New("owo", "potato")), // 4KiB
         //&Widget.init(&textWidget.New("uwu", "tomato")), // 4KiB
+        &Widget.init(&cpuWidget.New(&br)), // Unknown
         &Widget.init(&memoryWidget.New(&br)), // 4.08KiB
         &Widget.init(&weatherWidget.New(allocator, &br, @import("build_options").weather_location)), // 16.16KiB
         &Widget.init(&batteryWidget.New(allocator, &br)), // 12.11KiB

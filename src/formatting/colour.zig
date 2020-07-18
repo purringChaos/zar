@@ -28,7 +28,7 @@ const TerminalYellowColour = "\u{001b}[33m";
 const TerminalGreenColour = "\u{001b}[32m";
 const TerminalPurpleColour = "\u{001b}[35m";
 
-fn getColourFromColour(clr: []const u8) []const u8 {
+inline fn getColourFromColour(clr: []const u8) []const u8 {
     if (clr[0] == '#' or clr[0] == '\u{001b}') {
         return clr;
     } else if (eql(u8, clr, "text")) {

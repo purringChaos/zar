@@ -31,7 +31,6 @@ pub fn build(b: *Builder) void {
     exe.addBuildOption([]const u8, "weather_location", weather_location);
 
 
-
     //exe.strip = true;
     exe.addPackage(.{
         .name = "interfaces",
