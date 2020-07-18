@@ -123,6 +123,7 @@ pub const MemoryWidget = struct {
         var text: []const u8 = " ";
 
         // And this is why I love the looping counter.
+        std.debug.print("num: {}\n", .{self.lc});
         if (self.lc.get() == 0) {
             text = try std.fmt.allocPrint(allocator, "{} {}", .{
                 comptimeColour("accentlight", "mem"),
@@ -168,6 +169,8 @@ pub const MemoryWidget = struct {
                 comptimeColour("accentlight", "mem buf"),
                 kibibytesToMegabytes(memInfo.buffers),
             });
+        } else {
+            unreachable;
         }
 
         try self.bar.add(Info{
