@@ -1,7 +1,7 @@
 const std = @import("std");
 const testing = std.testing;
 
-/// A LoopingCounter is *extremely* helpful when making clickable widgets 
+/// A LoopingCounter is *extremely* helpful when making clickable widgets
 /// that have different data to show and loops around.
 pub fn LoopingCounter(
     comptime max_number: comptime_int,

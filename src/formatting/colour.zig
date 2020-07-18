@@ -28,85 +28,54 @@ const TerminalYellowColour = "\u{001b}[33m";
 const TerminalGreenColour = "\u{001b}[32m";
 const TerminalPurpleColour = "\u{001b}[35m";
 
+fn getColourFromColour(clr: []const u8) []const u8 {
+    if (clr[0] == '#' or clr[0] == '\u{001b}') {
+        return clr;
+    } else if (eql(u8, clr, "text")) {
+        return if (!terminal_version) TextColour else TerminalTextColour;
+    } else if (eql(u8, clr, "dark")) {
+        return if (!terminal_version) DarkerTextColour else TerminalDarkerTextColour;
+    } else if (eql(u8, clr, "darkest")) {
+        return if (!terminal_version) DarkestTextColour else TerminalDarkestTextColour;
+    } else if (eql(u8, clr, "accentlight")) {
+        return if (!terminal_version) AccentLightColour else TerminalAccentLightColour;
+    } else if (eql(u8, clr, "accentmedium")) {
+        return if (!terminal_version) AccentMediumColour else TerminalAccentMediumColour;
+    } else if (eql(u8, clr, "accentdark")) {
+        return if (!terminal_version) AccentDarkColour else TerminalAccentDarkColour;
+    } else if (eql(u8, clr, "red")) {
+        return if (!terminal_version) RedColour else TerminalRedColour;
+    } else if (eql(u8, clr, "orange")) {
+        return if (!terminal_version) OrangeColour else TerminalOrangeColour;
+    } else if (eql(u8, clr, "yellow")) {
+        return if (!terminal_version) YellowColour else TerminalYellowColour;
+    } else if (eql(u8, clr, "green")) {
+        return if (!terminal_version) GreenColour else TerminalGreenColour;
+    } else if (eql(u8, clr, "purple")) {
+        return if (!terminal_version) PurpleColour else TerminalPurpleColour;
+    } else {
+        unreachable;
+    }
+}
 /// This colours a string but at comptime.
 pub fn comptimeColour(comptime clr: []const u8, comptime str: []const u8) []const u8 {
     if (disable_colour) return str;
 
-    if (clr[0] == '#' or clr[0] == '\u{001b}') {
-        if (terminal_version) {
-            return crl ++ str ++ TerminalResetColour;
-        } else {
-            return "<span color=\"" ++ clr ++ "\">" ++ str ++ "</span>";
-        }
+    const proper_colour = comptime getColourFromColour(clr);
+    if (terminal_version) {
+        return proper_colour ++ str ++ TerminalResetColour;
     } else {
-        comptime var colourText: []const u8 = "";
-        if (eql(u8, clr, "text")) {
-            colourText = if (!terminal_version) TextColour else TerminalTextColour;
-        } else if (eql(u8, clr, "dark")) {
-            colourText = if (!terminal_version) DarkerTextColour else TerminalDarkerTextColour;
-        } else if (eql(u8, clr, "darkest")) {
-            colourText = if (!terminal_version) DarkestTextColour else TerminalDarkestTextColour;
-        } else if (eql(u8, clr, "accentlight")) {
-            colourText = if (!terminal_version) AccentLightColour else TerminalAccentLightColour;
-        } else if (eql(u8, clr, "accentmedium")) {
-            colourText = if (!terminal_version) AccentMediumColour else TerminalAccentMediumColour;
-        } else if (eql(u8, clr, "accentdark")) {
-            colourText = if (!terminal_version) AccentDarkColour else TerminalAccentDarkColour;
-        } else if (eql(u8, clr, "red")) {
-            colourText = if (!terminal_version) RedColour else TerminalRedColour;
-        } else if (eql(u8, clr, "orange")) {
-            colourText = if (!terminal_version) OrangeColour else TerminalOrangeColour;
-        } else if (eql(u8, clr, "yellow")) {
-            colourText = if (!terminal_version) YellowColour else TerminalYellowColour;
-        } else if (eql(u8, clr, "green")) {
-            colourText = if (!terminal_version) GreenColour else TerminalGreenColour;
-        } else if (eql(u8, clr, "purple")) {
-            colourText = if (!terminal_version) PurpleColour else TerminalPurpleColour;
-        }
-        if (colourText.len == 0) {
-            unreachable;
-        }
-        return comptimeColour(colourText, str);
+        return "<span color=\"" ++ proper_colour ++ "\">" ++ str ++ "</span>";
     }
 }
 
 /// This colours a dynamic string at runtime.
-/// It may make more than one allocation,
-/// so put it on a ArenaAllocator so you can free what else it allocates.
 pub fn colour(alloc: *std.mem.Allocator, clr: []const u8, str: []const u8) ![]const u8 {
     if (disable_colour) return str;
-
-    if (clr[0] == '#' or clr[0] == '\u{001b}') {
-        if (terminal_version) {
-            return try std.fmt.allocPrint(alloc, "{}{}" ++ TerminalResetColour, .{ clr, str });
-        } else {
-            return try std.fmt.allocPrint(alloc, "<span color=\"{}\">{}</span>", .{ clr, str });
-        }
+    const proper_colour = getColourFromColour(clr);
+    if (terminal_version) {
+        return try std.fmt.allocPrint(alloc, "{}{}" ++ TerminalResetColour, .{ proper_colour, str });
     } else {
-        var colourText: []const u8 = "";
-        if (eql(u8, clr, "text")) {
-            colourText = if (!terminal_version) TextColour else TerminalTextColour;
-        } else if (eql(u8, clr, "dark")) {
-            colourText = if (!terminal_version) DarkerTextColour else TerminalDarkerTextColour;
-        } else if (eql(u8, clr, "darkest")) {
-            colourText = if (!terminal_version) DarkestTextColour else TerminalDarkestTextColour;
-        } else if (eql(u8, clr, "accentlight")) {
-            colourText = if (!terminal_version) AccentLightColour else TerminalAccentLightColour;
-        } else if (eql(u8, clr, "accentmedium")) {
-            colourText = if (!terminal_version) AccentMediumColour else TerminalAccentMediumColour;
-        } else if (eql(u8, clr, "accentdark")) {
-            colourText = if (!terminal_version) AccentDarkColour else TerminalAccentDarkColour;
-        } else if (eql(u8, clr, "red")) {
-            colourText = if (!terminal_version) RedColour else TerminalRedColour;
-        } else if (eql(u8, clr, "orange")) {
-            colourText = if (!terminal_version) OrangeColour else TerminalOrangeColour;
-        } else if (eql(u8, clr, "yellow")) {
-            colourText = if (!terminal_version) YellowColour else TerminalYellowColour;
-        } else if (eql(u8, clr, "green")) {
-            colourText = if (!terminal_version) GreenColour else TerminalGreenColour;
-        } else if (eql(u8, clr, "purple")) {
-            colourText = if (!terminal_version) PurpleColour else TerminalPurpleColour;
-        }
-        return colour(alloc, colourText, str);
+        return try std.fmt.allocPrint(alloc, "<span color=\"{}\">{}</span>", .{ proper_colour, str });
     }
 }

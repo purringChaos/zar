@@ -159,7 +159,7 @@ pub const Bar = struct {
                 if (std.mem.eql(u8, line, "[")) continue;
                 // Prevention from crashing when running via `zig build run` when pressing enter key.
                 if (line.len == 0) continue;
-                // Why do you even do this i3bar? 
+                // Why do you even do this i3bar?
                 // Why cant you just send one single {} without a comma at start.
                 // This is stupid and I don't get it, maybe if you were streaming the data
                 // instead of looping and getting it, maybe then it would make more sense?

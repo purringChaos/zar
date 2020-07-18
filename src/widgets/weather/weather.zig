@@ -62,7 +62,6 @@ pub const WeatherWidget = struct {
         var main: []const u8 = "";
         var message: []const u8 = "";
 
-
         // This parser is clunky, it may  be worth a rewrite but it seems like it optimizes decently.
         while (try client.readEvent()) |event| {
             switch (event) {
@@ -172,7 +171,6 @@ pub const WeatherWidget = struct {
 
         var temp = inf.temp;
         var main = inf.main;
-
 
         // Please note that these are *my* personal temp preferences.
         // TODO: it may be worth making a way for the user to change this with a function on init.

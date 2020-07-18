@@ -25,7 +25,6 @@ pub const TimeWidget = struct {
 
     pub fn start(self: *TimeWidget) anyerror!void {
         // TODO: find a god damn decent time library thats better than this bullshit.
-
         while (self.bar.keep_running()) {
             var arena = std.heap.ArenaAllocator.init(self.allocator);
             defer arena.deinit();
