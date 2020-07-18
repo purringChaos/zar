@@ -98,7 +98,7 @@ fn fetchTotalMemory() !MemInfo {
 
 pub const MemoryWidget = struct {
     bar: *Bar,
-    lc: *LoopingCounter(8),
+    lc: LoopingCounter(8),
     pub fn name(self: *MemoryWidget) []const u8 {
         return "mem";
     }
@@ -123,7 +123,6 @@ pub const MemoryWidget = struct {
         var text: []const u8 = " ";
 
         // And this is why I love the looping counter.
-        std.debug.print("num: {}\n", .{self.lc});
         if (self.lc.get() == 0) {
             text = try std.fmt.allocPrint(allocator, "{} {}", .{
                 comptimeColour("accentlight", "mem"),
@@ -191,6 +190,6 @@ pub const MemoryWidget = struct {
 pub inline fn New(bar: *Bar) MemoryWidget {
     return MemoryWidget{
         .bar = bar,
-        .lc = &LoopingCounter(8).init(),
+        .lc = LoopingCounter(8).init(),
     };
 }
