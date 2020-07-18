@@ -35,7 +35,7 @@ fn formatMemoryPercent(allocator: *std.mem.Allocator, percent: f64) ![]const u8 
     } else {
         percentColour = "green";
     }
-    const percentString = try std.fmt.allocPrint(allocator, "{d:.2}" ++ comptimeColour("accentdark", "%"), .{ percent });
+    const percentString = try std.fmt.allocPrint(allocator, "{d:.2}" ++ comptimeColour("accentdark", "%"), .{percent});
     return colour(allocator, percentColour, percentString);
 }
 

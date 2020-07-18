@@ -16,7 +16,7 @@ fn formatCPUPercent(allocator: *std.mem.Allocator, percent: f64) ![]const u8 {
     } else {
         percentColour = "green";
     }
-    const percentString = try std.fmt.allocPrint(allocator, "{d:.2}" ++ comptimeColour("accentdark", "%"), .{ percent });
+    const percentString = try std.fmt.allocPrint(allocator, "{d:.2}" ++ comptimeColour("accentdark", "%"), .{percent});
 
     return colour(allocator, percentColour, percentString);
 }
@@ -30,7 +30,7 @@ fn fetchCPU() ![2]f64 {
     defer stat_file.close();
     // data[0] = idle usage
     // data[1] = non-idle usage
-    var data: [2]f64 = [2]f64{0.0,0.0};
+    var data: [2]f64 = [2]f64{ 0.0, 0.0 };
 
     var line_buffer: [128]u8 = undefined;
     const line_opt = try stat_file.inStream().readUntilDelimiterOrEof(&line_buffer, '\n');
@@ -92,8 +92,7 @@ pub const CPUWidget = struct {
         const total_difference = next_total - previous_total;
         const idle_difference = next_stats[0] - previous_stats[0];
         // Work out CPU Percentage.
-        const percentage = ((total_difference - idle_difference)/total_difference)*100;
-
+        const percentage = ((total_difference - idle_difference) / total_difference) * 100;
 
         var buffer: [256]u8 = undefined;
         var fba = std.heap.FixedBufferAllocator.init(&buffer);
