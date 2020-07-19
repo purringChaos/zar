@@ -17,6 +17,12 @@ pub fn build(b: *Builder) void {
         "terminal-only version",
     ) orelse false;
     exe.addBuildOption(bool, "terminal_version", terminal_version);
+    const disable_terminal_mouse = b.option(
+        bool,
+        "disable_terminal_mouse",
+        "disables mouse input processing for terminal",
+    ) orelse false;
+    exe.addBuildOption(bool, "disable_terminal_mouse", disable_terminal_mouse);
     const debug_allocator = b.option(
         bool,
         "debug_allocator",
@@ -34,7 +40,6 @@ pub fn build(b: *Builder) void {
         weather_location = std.fmt.allocPrint(b.allocator, "\"{}\"", .{weather_location}) catch "\"\"";
     }
     exe.addBuildOption([]const u8, "weather_location", weather_location);
-
 
     //exe.strip = true;
     exe.addPackage(.{

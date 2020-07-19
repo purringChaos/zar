@@ -5,6 +5,19 @@ const MouseEvent = @import("../types/mouseevent.zig");
 const os = std.os;
 const terminal_version = @import("build_options").terminal_version;
 const debug_allocator = @import("build_options").debug_allocator;
+const disable_terminal_mouse = @import("build_options").disable_terminal_mouse;
+
+fn readFromSignalFd(signal_fd: std.os.fd_t) !void {
+    var buf: [@sizeOf(os.linux.signalfd_siginfo)]u8 align(8) = undefined;
+    _ = try os.read(signal_fd, &buf);
+    return error.Shutdown;
+}
+
+fn sigemptyset(set: *std.os.sigset_t) void {
+    for (set) |*val| {
+        val.* = 0;
+    }
+}
 
 pub const Bar = struct {
     allocator: *std.mem.Allocator,
@@ -21,19 +34,44 @@ pub const Bar = struct {
             try self.infos.append(try self.dupe_info(w.initial_info()));
         }
         try self.print_infos(true);
+        var mask: std.os.sigset_t = undefined;
+
+        sigemptyset(&mask);
+        os.linux.sigaddset(&mask, std.os.SIGTERM);
+        os.linux.sigaddset(&mask, std.os.SIGINT);
+        _ = os.linux.sigprocmask(std.os.SIG_BLOCK, &mask, null);
+        const signal_fd = try os.signalfd(-1, &mask, 0);
+        defer os.close(signal_fd);
+        std.debug.print("signalfd: {}\n", .{signal_fd});
+
         for (self.widgets) |w| {
             var thread = try std.Thread.spawn(w, Widget.start);
         }
         var thread = try std.Thread.spawn(self, Bar.process);
         // TODO: wait for kill signal to kill bar instead of waiting for thread.
-        thread.wait();
+        //thread.wait();
+
+        while (true) {
+            readFromSignalFd(signal_fd) catch |err| {
+                if (err == error.Shutdown) break else std.debug.print("failed to read from signal fd: {}\n", .{err});
+            };
+        }
+        std.debug.print("Shutting Down.\n", .{});
+
         self.running = false;
+        const lock = self.items_mutex.acquire();
+        defer lock.release();
         // Wait for most widgets to stop.
         std.time.sleep(1000 * std.time.ns_per_ms);
+
         for (self.infos.items) |info| {
             try self.free_info(info);
         }
         self.infos.deinit();
+        std.debug.print("Shut Down.\n", .{});
+        if (terminal_version and !disable_terminal_mouse) {
+            try self.out_file.writer().writeAll("\u{001b}[?1000;1006;1015l");
+        }
     }
 
     inline fn print_i3bar_infos(self: *Bar) !void {
@@ -92,7 +130,7 @@ pub const Bar = struct {
         // TODO: reset on bar end.
         try os.tcsetattr(0, .FLUSH, termios);
 
-        while (true) {
+        while (self.running) {
             var line_buffer: [128]u8 = undefined;
             // 0x1b is the ESC key which is used for sending and recieving events to xterm terminals.
             const line_opt = try std.io.getStdIn().inStream().readUntilDelimiterOrEof(&line_buffer, 0x1b);
@@ -186,15 +224,15 @@ pub const Bar = struct {
         // Right now this is what we do for the debug allocator for testing memory usage.
         // If it the best code? Heck no but until we can gracefully ^C the program
         // this is the best we can do.
-        if (debug_allocator) {
-            std.time.sleep(std.time.ns_per_ms * 2000 * 5);
-            if (true) return;
-        }
         // TODO: log errors.
-        if (terminal_version) {
-            self.terminal_input_process() catch {};
-        } else {
-            self.i3bar_input_process() catch {};
+        while (self.running) {
+            if (terminal_version) {
+                if (!disable_terminal_mouse) {
+                    self.terminal_input_process() catch {};
+                }
+            } else {
+                self.i3bar_input_process() catch {};
+            }
         }
     }
     pub fn keep_running(self: *Bar) bool {
@@ -226,6 +264,7 @@ pub const Bar = struct {
     pub fn add(self: *Bar, info: Info) !void {
         const lock = self.items_mutex.acquire();
         defer lock.release();
+        if (!self.running) return;
         for (self.infos.items) |infoItem, index| {
             if (std.mem.eql(u8, infoItem.name, info.name)) {
                 if (std.mem.eql(u8, infoItem.full_text, info.full_text)) {
