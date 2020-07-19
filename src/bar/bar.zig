@@ -47,7 +47,7 @@ pub const Bar = struct {
         for (self.widgets) |w| {
             var thread = try std.Thread.spawn(w, Widget.start);
         }
-        var thread = try std.Thread.spawn(self, Bar.process);
+        _ = try std.Thread.spawn(self, Bar.process);
         // TODO: wait for kill signal to kill bar instead of waiting for thread.
         //thread.wait();
 
@@ -231,7 +231,7 @@ pub const Bar = struct {
                     self.terminal_input_process() catch {};
                 }
             } else {
-                self.i3bar_input_process() catch {};
+                try self.i3bar_input_process();
             }
         }
     }
