@@ -17,7 +17,38 @@ const Info = @import("types/info.zig");
 
 const debug_allocator = @import("build_options").debug_allocator;
 
+// Set the log level to warning
+//pub const log_level: std.log.Level = .warn;
+// Define root.log to override the std implementation
+pub fn log(
+    comptime level: std.log.Level,
+    comptime scope: @TypeOf(.EnumLiteral),
+    comptime format: []const u8,
+    args: anytype,
+) void {
+    // Ignore all non-critical logging from sources other than
+    // .my_project and .nice_library
+    const prefix_text = switch (level) {
+        .emerg => "EMER",
+        .alert => "ALER",
+        .crit => "CRIT",
+        .err => "ERROR",
+        .warn => "WARN",
+        .notice => "NOTI",
+        .info => "INFO",
+        .debug => "DBUG",
+        else => "WAT",
+    };
+    var format_text: []const u8 = "";
+    const prefix = prefix_text ++ "[" ++ @tagName(scope) ++ "] ";
+    const held = std.debug.getStderrMutex().acquire();
+    defer held.release();
+    const stderr = std.io.getStdErr().writer();
+    nosuspend stderr.print(prefix ++ format, args) catch return;
+}
+
 pub fn main() !void {
+    std.log.info(.main, "Starting Bar.", .{});
     var allocator: *std.mem.Allocator = undefined;
     var dbgAlloc: *DebugAllocator = undefined;
     if (debug_allocator) {
@@ -42,8 +73,8 @@ pub fn main() !void {
     bar.widgets = widgets[0..];
     try br.start();
     if (debug_allocator) {
-        std.debug.print("Finished cleanup, last allocation info.\n", .{});
-        std.debug.print("\n{}\n", .{dbgAlloc.info});
+        std.log.debug(.main, "Finished cleanup, last allocation info.\n", .{});
+        std.log.debug(.main, "\n{}\n", .{dbgAlloc.info});
         dbgAlloc.printRemainingStackTraces();
         dbgAlloc.deinit();
     }

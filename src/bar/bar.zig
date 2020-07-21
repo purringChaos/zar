@@ -3,6 +3,7 @@ const Widget = @import("../types/widget.zig").Widget;
 const Info = @import("../types/info.zig");
 const MouseEvent = @import("../types/mouseevent.zig");
 const os = std.os;
+const log = std.log;
 const terminal_version = @import("build_options").terminal_version;
 const debug_allocator = @import("build_options").debug_allocator;
 const disable_terminal_mouse = @import("build_options").disable_terminal_mouse;
@@ -42,21 +43,20 @@ pub const Bar = struct {
         _ = os.linux.sigprocmask(std.os.SIG_BLOCK, &mask, null);
         const signal_fd = try os.signalfd(-1, &mask, 0);
         defer os.close(signal_fd);
-        std.debug.print("signalfd: {}\n", .{signal_fd});
-
+        log.debug(.bar, "Spawning threads.\n", .{});
         for (self.widgets) |w| {
+            log.debug(.bar, "Spawning thread=\"{}\"\n", .{w.name()});
             var thread = try std.Thread.spawn(w, Widget.start);
         }
         _ = try std.Thread.spawn(self, Bar.process);
-        // TODO: wait for kill signal to kill bar instead of waiting for thread.
-        //thread.wait();
+        log.info(.bar, "Waiting for kill signal.\n", .{});
 
         while (true) {
             readFromSignalFd(signal_fd) catch |err| {
-                if (err == error.Shutdown) break else std.debug.print("failed to read from signal fd: {}\n", .{err});
+                if (err == error.Shutdown) break else log.err(.bar, "failed to read from signal fd: {}\n", .{err});
             };
         }
-        std.debug.print("Shutting Down.\n", .{});
+        log.info(.bar, "Shutting Down.\n", .{});
 
         self.running = false;
         const lock = self.items_mutex.acquire();
@@ -68,7 +68,7 @@ pub const Bar = struct {
             try self.free_info(info);
         }
         self.infos.deinit();
-        std.debug.print("Shut Down.\n", .{});
+        log.info(.bar, "Shut Down.\n", .{});
         if (terminal_version and !disable_terminal_mouse) {
             try self.out_file.writer().writeAll("\u{001b}[?1000;1006;1015l");
         }
@@ -205,17 +205,17 @@ pub const Bar = struct {
                 if (line[0] == ',') line = line[1..line.len];
                 const parseOptions = std.json.ParseOptions{ .allocator = allocator };
                 const data = try std.json.parse(MouseEvent, &std.json.TokenStream.init(line), parseOptions);
+                defer std.json.parseFree(MouseEvent, data, parseOptions);
                 // TODO: maybe make a function for getting the widget or widget index by name?
                 // We do use this patern a lot in this code.
                 for (self.widgets) |w| {
                     if (std.mem.eql(u8, w.name(), data.name)) {
-                        w.mouse_event(data) catch {};
+                        try w.mouse_event(data);
                     }
                 }
                 // If mouse_event needs to store the event for after the call is finished,
                 // it should do it by itself, this just keeps the lifetime of the event to bare minimum.
                 // Free the memory allocated by the MouseEvent struct.
-                std.json.parseFree(MouseEvent, data, parseOptions);
             }
         }
     }
@@ -228,10 +228,10 @@ pub const Bar = struct {
         while (self.running) {
             if (terminal_version) {
                 if (!disable_terminal_mouse) {
-                    self.terminal_input_process() catch {};
+                    self.terminal_input_process() catch |err| {  log.err(.bar, "failed to process terminal input: {}\n", .{err}); };
                 }
             } else {
-                try self.i3bar_input_process();
+                self.i3bar_input_process() catch |err| {  log.err(.bar, "failed to process i3bar input: {}\n", .{err}); };
             }
         }
     }
@@ -242,6 +242,10 @@ pub const Bar = struct {
 
     /// This frees the name and text fields of a Info struct.
     fn free_info(self: *Bar, info: Info) !void {
+        const name_size = info.name.len * @sizeOf(u8);
+        const text_size = info.full_text.len * @sizeOf(u8);
+        const total_size = name_size + text_size;
+        log.debug(.bar, "Freeing info for \"{}\", name_size={} text_size={} total={}\n", .{info.name, name_size, text_size, total_size});
         self.allocator.free(info.name);
         self.allocator.free(info.full_text);
     }
@@ -250,6 +254,10 @@ pub const Bar = struct {
     /// memory lifetime, we duplicate the info fields.
     fn dupe_info(self: *Bar, info: Info) !Info {
         // TODO: name should be comptime known, rework.
+        const name_size = info.name.len * @sizeOf(u8);
+        const text_size = info.full_text.len * @sizeOf(u8);
+        const total_size = name_size + text_size;
+        log.debug(.bar, "Duping info for \"{}\", name_size={} text_size={} total={}\n", .{info.name, name_size, text_size, total_size});
         const new_name = try self.allocator.alloc(u8, info.name.len);
         std.mem.copy(u8, new_name, info.name);
         const new_text = try self.allocator.alloc(u8, info.full_text.len);
