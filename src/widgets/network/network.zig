@@ -37,18 +37,17 @@ fn toNetworkStatus(str: []const u8) NetworkStatus {
 }
 
 fn networkStatusToColour(s: NetworkStatus) []const u8 {
-    return switch(s) {
+    return switch (s) {
         .Connected => "green",
         .Disconnected => "red",
-        else => "darkest"
+        else => "darkest",
     };
 }
-
 
 pub const NetworkInfo = struct {
     network_type: NetworkType = .WiFi,
     network_status: NetworkStatus = .Connected,
-    network_info: [32]u8 = [32]u8{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+    network_info: [32]u8 = [32]u8{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' },
     network_info_len: usize,
 };
 
@@ -131,7 +130,7 @@ pub const NetworkWidget = struct {
 
             try self.bar.add(Info{
                 .name = "network",
-                .full_text = try colour(allocator, networkStatusToColour(info.network_status), try std.fmt.allocPrint(allocator, "{} {}", .{@tagName(info.network_type), info.network_info[0..info.network_info_len]})),
+                .full_text = try colour(allocator, networkStatusToColour(info.network_status), try std.fmt.allocPrint(allocator, "{} {}", .{ @tagName(info.network_type), info.network_info[0..info.network_info_len] })),
                 .markup = "pango",
             });
         }
