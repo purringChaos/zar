@@ -8,12 +8,16 @@ const LoopingCounter = @import("../../types/loopingcounter.zig").LoopingCounter;
 const log = std.log;
 
 const MemInfo = struct {
+    memPercent: f64,
     memTotal: u64,
     memFree: u64,
+    memUsed: u64,
     buffers: u64,
     cached: u64,
+    swapPercent: f64,
     swapTotal: u64,
     swapFree: u64,
+    swapUsed: u64,
     swapCached: u64,
 };
 
@@ -44,13 +48,17 @@ fn fetchTotalMemory() !MemInfo {
     var meminfo_file = try std.fs.cwd().openFile("/proc/meminfo", .{ .read = true, .write = false });
     defer meminfo_file.close();
 
-    var meminfo = MemInfo{
+    var memInfo = MemInfo{
+        .memPercent = 0,
         .memTotal = 0,
         .memFree = 0,
+        .memUsed = 0,
         .buffers = 0,
         .cached = 0,
+        .swapPercent = 0,
         .swapTotal = 0,
         .swapFree = 0,
+        .swapUsed = 0,
         .swapCached = 0,
     };
 
@@ -61,31 +69,31 @@ fn fetchTotalMemory() !MemInfo {
             var it = std.mem.tokenize(line, " ");
             const line_header = it.next().?;
             if (std.mem.eql(u8, line_header, "MemTotal:")) {
-                meminfo.memTotal = try parseKibibytes(it.next().?);
+                memInfo.memTotal = try parseKibibytes(it.next().?);
                 continue;
             }
             if (std.mem.eql(u8, line_header, "MemFree:")) {
-                meminfo.memFree = try parseKibibytes(it.next().?);
+                memInfo.memFree = try parseKibibytes(it.next().?);
                 continue;
             }
             if (std.mem.eql(u8, line_header, "Buffers:")) {
-                meminfo.buffers = try parseKibibytes(it.next().?);
+                memInfo.buffers = try parseKibibytes(it.next().?);
                 continue;
             }
             if (std.mem.eql(u8, line_header, "Cached:")) {
-                meminfo.cached = try parseKibibytes(it.next().?);
+                memInfo.cached = try parseKibibytes(it.next().?);
                 continue;
             }
             if (std.mem.eql(u8, line_header, "SwapTotal:")) {
-                meminfo.swapTotal = try parseKibibytes(it.next().?);
+                memInfo.swapTotal = try parseKibibytes(it.next().?);
                 continue;
             }
             if (std.mem.eql(u8, line_header, "SwapFree:")) {
-                meminfo.swapFree = try parseKibibytes(it.next().?);
+                memInfo.swapFree = try parseKibibytes(it.next().?);
                 continue;
             }
             if (std.mem.eql(u8, line_header, "SwapCached:")) {
-                meminfo.swapCached = try parseKibibytes(it.next().?);
+                memInfo.swapCached = try parseKibibytes(it.next().?);
                 continue;
             }
         } else {
@@ -93,8 +101,12 @@ fn fetchTotalMemory() !MemInfo {
             break;
         }
     }
+    memInfo.memUsed = memInfo.memTotal - memInfo.memFree - memInfo.buffers - memInfo.cached;
+    memInfo.swapUsed = memInfo.swapTotal - memInfo.swapFree;
+    memInfo.memPercent = (@intToFloat(f64, memInfo.memUsed) / @intToFloat(f64, memInfo.memTotal)) * 100;
+    memInfo.swapPercent = (@intToFloat(f64, memInfo.swapUsed) / @intToFloat(f64, memInfo.swapTotal)) * 100;
 
-    return meminfo;
+    return memInfo;
 }
 
 pub const MemoryWidget = struct {
@@ -127,12 +139,12 @@ pub const MemoryWidget = struct {
         if (self.lc.get() == 0) {
             text = try std.fmt.allocPrint(allocator, "{} {}", .{
                 comptimeColour("accentlight", "mem"),
-                formatMemoryPercent(allocator, (@intToFloat(f64, memInfo.memTotal - memInfo.memFree - memInfo.buffers - memInfo.cached) / @intToFloat(f64, memInfo.memTotal)) * 100),
+                formatMemoryPercent(allocator, memInfo.memPercent),
             });
         } else if (self.lc.get() == 1) {
             text = try std.fmt.allocPrint(allocator, "{} {}", .{
                 comptimeColour("accentlight", "swap"),
-                formatMemoryPercent(allocator, (@intToFloat(f64, memInfo.swapTotal - memInfo.swapFree) / @intToFloat(f64, memInfo.swapTotal)) * 100),
+                formatMemoryPercent(allocator, memInfo.swapPercent),
             });
         } else if (self.lc.get() == 2) {
             text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
@@ -147,12 +159,12 @@ pub const MemoryWidget = struct {
         } else if (self.lc.get() == 4) {
             text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
                 comptimeColour("accentlight", "mem used"),
-                kibibytesToMegabytes(memInfo.memTotal - memInfo.memFree - memInfo.buffers - memInfo.cached),
+                kibibytesToMegabytes(memInfo.memUsed),
             });
         } else if (self.lc.get() == 5) {
             text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
                 comptimeColour("accentlight", "swap used"),
-                kibibytesToMegabytes(memInfo.swapTotal - memInfo.swapFree),
+                kibibytesToMegabytes(memInfo.swapUsed),
             });
         } else if (self.lc.get() == 6) {
             text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
