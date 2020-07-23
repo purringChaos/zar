@@ -40,3 +40,10 @@ test "looping test" {
     lc.next();
     testing.expect(lc.get() == 0);
 }
+
+test "0 value test" {
+    var lc = LoopingCounter(0).init();
+    testing.expect(lc.get() == 0);
+    lc.next();
+    testing.expect(lc.get() == 0);
+}
