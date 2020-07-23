@@ -142,11 +142,18 @@ pub const Bar = struct {
                 // First number is just the mouse event, skip processing it for now.
                 // TODO: map mouse click and scroll events to the right enum value.
                 _ = it.next();
-                const click_x_position = try std.fmt.parseInt(u64, it.next().?, 10);
-                var y = it.next().?;
+                var x = it.next();
+                var y = it.next();
+                if (x == null) {
+                    continue;
+                }
+                if (y == null) {
+                    continue;
+                }
+                const click_x_position = try std.fmt.parseInt(u64, x.?, 10);
                 // This makes it so it only works on the end of a click not the start
                 // preventing a single click pressing the button twice.
-                if (y[y.len - 1] == 'm') continue;
+                if (y.?[y.?.len - 1] == 'm') continue;
 
                 var current_info_line_length: u64 = 0;
                 for (self.infos.items) |infoItem, index| {
@@ -228,10 +235,14 @@ pub const Bar = struct {
         while (self.running) {
             if (terminal_version) {
                 if (!disable_terminal_mouse) {
-                    self.terminal_input_process() catch |err| {  log.err(.bar, "failed to process terminal input: {}\n", .{err}); };
+                    self.terminal_input_process() catch |err| {
+                        log.err(.bar, "failed to process terminal input: {}\n", .{err});
+                    };
                 }
             } else {
-                self.i3bar_input_process() catch |err| {  log.err(.bar, "failed to process i3bar input: {}\n", .{err}); };
+                self.i3bar_input_process() catch |err| {
+                    log.err(.bar, "failed to process i3bar input: {}\n", .{err});
+                };
             }
         }
     }
@@ -245,7 +256,7 @@ pub const Bar = struct {
         const name_size = info.name.len * @sizeOf(u8);
         const text_size = info.full_text.len * @sizeOf(u8);
         const total_size = name_size + text_size;
-        log.debug(.bar, "Freeing info for \"{}\", name_size={} text_size={} total={}\n", .{info.name, name_size, text_size, total_size});
+        //log.debug(.bar, "Freeing info for \"{}\", name_size={} text_size={} total={}\n", .{ info.name, name_size, text_size, total_size });
         self.allocator.free(info.name);
         self.allocator.free(info.full_text);
     }
@@ -257,7 +268,7 @@ pub const Bar = struct {
         const name_size = info.name.len * @sizeOf(u8);
         const text_size = info.full_text.len * @sizeOf(u8);
         const total_size = name_size + text_size;
-        log.debug(.bar, "Duping info for \"{}\", name_size={} text_size={} total={}\n", .{info.name, name_size, text_size, total_size});
+        //log.debug(.bar, "Duping info for \"{}\", name_size={} text_size={} total={}\n", .{ info.name, name_size, text_size, total_size });
         const new_name = try self.allocator.alloc(u8, info.name.len);
         std.mem.copy(u8, new_name, info.name);
         const new_text = try self.allocator.alloc(u8, info.full_text.len);

@@ -10,7 +10,7 @@ const timeWidget = @import("widgets/time/time.zig");
 const batteryWidget = @import("widgets/battery/battery.zig");
 const memoryWidget = @import("widgets/memory/memory.zig");
 const cpuWidget = @import("widgets/cpu/cpu.zig");
-const marqueeTextWidget = @import("widgets/marqueetext/marqueetext.zig");
+const networkWidget = @import("widgets/network/network.zig");
 
 const DebugAllocator = @import("debug_allocator.zig");
 const Info = @import("types/info.zig");
@@ -56,7 +56,9 @@ pub fn main() !void {
         dbgAlloc = &DebugAllocator.init(std.heap.page_allocator, 8192 * 8192);
         allocator = &dbgAlloc.allocator;
     } else {
-        allocator = std.heap.page_allocator;
+        var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+        defer arena.deinit();
+        allocator = &arena.allocator;
     }
     var bar = barImpl.initBar(allocator);
     var br = Bar.init(&bar);
@@ -64,6 +66,8 @@ pub fn main() !void {
     const widgets = [_]*Widget{
         //&Widget.init(&textWidget.New("owo", "potato")), // 4KiB
         //&Widget.init(&textWidget.New("uwu", "tomato")), // 4KiB
+        &Widget.init(&networkWidget.New(allocator, &br)), // 4.08KiB
+
         &Widget.init(&cpuWidget.New(&br)), // 4.08KiB
         &Widget.init(&memoryWidget.New(&br)), // 4.08KiB
         &Widget.init(&weatherWidget.New(allocator, &br, @import("build_options").weather_location)), // 16.16KiB

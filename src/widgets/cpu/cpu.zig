@@ -108,7 +108,14 @@ pub const CPUWidget = struct {
     }
 
     pub fn start(self: *CPUWidget) anyerror!void {
-        //try self.update_bar();
+        if (@import("builtin").os.tag != .linux) {
+            try self.bar.add(Info{
+                .name = "cpu",
+                .full_text = "unsupported OS",
+                .markup = "pango",
+            });
+            return;
+        }
         while (self.bar.keep_running()) {
             try self.update_bar();
         }

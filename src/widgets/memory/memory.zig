@@ -5,6 +5,7 @@ const colour = @import("../../formatting/colour.zig").colour;
 const comptimeColour = @import("../../formatting/colour.zig").comptimeColour;
 const MouseEvent = @import("../../types/mouseevent.zig");
 const LoopingCounter = @import("../../types/loopingcounter.zig").LoopingCounter;
+const log = std.log;
 
 const MemInfo = struct {
     memTotal: u64,
@@ -180,6 +181,15 @@ pub const MemoryWidget = struct {
     }
 
     pub fn start(self: *MemoryWidget) anyerror!void {
+        if (@import("builtin").os.tag != .linux) {
+            try self.bar.add(Info{
+                .name = "mem",
+                .full_text = "unsupported OS",
+                .markup = "pango",
+            });
+            return;
+        }
+
         while (self.bar.keep_running()) {
             self.update_bar() catch {};
             std.time.sleep(500 * std.time.ns_per_ms);
