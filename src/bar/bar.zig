@@ -110,6 +110,16 @@ pub const Bar = struct {
         }
     }
 
+    fn dispatch_click_event(self: *Bar, name: []const u8, event: MouseEvent) !void {
+        std.log.debug(.bar, "Dispatch! {} {}\n", .{ name, event });
+
+        for (self.widgets) |w| {
+            if (std.mem.eql(u8, w.name(), name)) {
+                try w.mouse_event(event);
+            }
+        }
+    }
+
     inline fn terminal_input_process(self: *Bar) !void {
         // TODO: make work on other OSes other than xterm compatable terminals.
 
@@ -150,16 +160,17 @@ pub const Bar = struct {
                 if (y == null) {
                     continue;
                 }
-                const click_x_position = try std.fmt.parseInt(u64, x.?, 10);
+                const click_x_position = try std.fmt.parseInt(u16, x.?, 10);
                 // This makes it so it only works on the end of a click not the start
                 // preventing a single click pressing the button twice.
                 if (y.?[y.?.len - 1] == 'm') continue;
 
-                var current_info_line_length: u64 = 0;
+                var current_info_line_length: u16 = 0;
                 for (self.infos.items) |infoItem, index| {
                     // Because the terminal output contains colour codes, we need to strip them.
                     // To do this we only count the number of characters that are actually printed.
                     var isEscape: bool = false;
+                    const previous_length = current_info_line_length;
                     for (infoItem.full_text) |char| {
                         // Skip all of the escape codes.
                         if (char == 0x1b) {
@@ -177,12 +188,8 @@ pub const Bar = struct {
                         current_info_line_length = current_info_line_length + 1;
                     }
                     // Get the first widget that the click is in.
-                    if (click_x_position <= current_info_line_length) {
-                        for (self.widgets) |w| {
-                            if (std.mem.eql(u8, w.name(), infoItem.name)) {
-                                w.mouse_event(.{ .button = .LeftClick }) catch {};
-                            }
-                        }
+                    if (click_x_position <= current_info_line_length) { 
+                        self.dispatch_click_event(infoItem.name, .{ .button = .LeftClick, .x = click_x_position, .y=0,.scale=1, .height=1, .relative_x = click_x_position - previous_length}) catch {};
                         break;
                     }
                     // Compensate for the | seporator on the terminal.
@@ -195,9 +202,6 @@ pub const Bar = struct {
     inline fn i3bar_input_process(self: *Bar) !void {
         var line_buffer: [512]u8 = undefined;
         while (self.running) {
-            var arena = std.heap.ArenaAllocator.init(self.allocator);
-            defer arena.deinit();
-            var allocator = &arena.allocator;
             const line_opt = try std.io.getStdIn().inStream().readUntilDelimiterOrEof(&line_buffer, '\n');
             if (line_opt) |l| {
                 var line = l;
@@ -210,16 +214,11 @@ pub const Bar = struct {
                 // instead of looping and getting it, maybe then it would make more sense?
                 // Anyway this just strips off the prefix of ',' so I can parse the json.
                 if (line[0] == ',') line = line[1..line.len];
-                const parseOptions = std.json.ParseOptions{ .allocator = allocator };
+                const parseOptions = std.json.ParseOptions{ .allocator = self.allocator };
                 const data = try std.json.parse(MouseEvent, &std.json.TokenStream.init(line), parseOptions);
                 defer std.json.parseFree(MouseEvent, data, parseOptions);
-                // TODO: maybe make a function for getting the widget or widget index by name?
-                // We do use this patern a lot in this code.
-                for (self.widgets) |w| {
-                    if (std.mem.eql(u8, w.name(), data.name)) {
-                        try w.mouse_event(data);
-                    }
-                }
+
+                self.dispatch_click_event(data.name, data) catch {};
                 // If mouse_event needs to store the event for after the call is finished,
                 // it should do it by itself, this just keeps the lifetime of the event to bare minimum.
                 // Free the memory allocated by the MouseEvent struct.

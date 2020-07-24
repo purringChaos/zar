@@ -47,9 +47,16 @@ fn networkStatusToColour(s: NetworkStatus) []const u8 {
 pub const NetworkInfo = struct {
     network_type: NetworkType = .WiFi,
     network_status: NetworkStatus = .Connected,
-    network_info: [32]u8 = [32]u8{ ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' },
-    network_info_len: usize,
+    network_info: []const u8,
 };
+
+inline fn freeString(allocator: *std.mem.Allocator, string: []const u8) void {
+    allocator.free(string);
+}
+
+inline fn dupeString(allocator: *std.mem.Allocator, string: []const u8) ![]const u8 {
+    return try allocator.dupe(u8, string);
+}
 
 pub const NetworkWidget = struct {
     bar: *Bar,
@@ -87,14 +94,15 @@ pub const NetworkWidget = struct {
     pub fn update_network_infos(self: *NetworkWidget) anyerror!void {
         const lock = self.update_mutex.acquire();
         defer lock.release();
-        self.network_infos.shrink(0);
+        for (self.network_infos.items) |info| {
+            freeString(self.allocator, info.network_info);
+        }
         self.num_interfaces = 0;
-        var arena = std.heap.ArenaAllocator.init(self.allocator);
-        defer arena.deinit();
-        var allocator = &arena.allocator;
-        var proc = try std.ChildProcess.init(&[_][]const u8{ "nmcli", "-f", "common", "-c", "no", "d" }, allocator);
+        var proc = try std.ChildProcess.init(&[_][]const u8{ "nmcli", "-f", "common", "-c", "no", "d" }, self.allocator);
+        defer { _ = proc.kill() catch {}; proc.deinit(); }
         proc.stdout_behavior = .Pipe;
         try proc.spawn();
+        var i: u8 = 0;
         if (proc.stdout) |stdout| {
             var line_buffer: [128]u8 = undefined;
             // Skip header.
@@ -107,44 +115,51 @@ pub const NetworkWidget = struct {
                 const status = it.next();
                 const description = it.next();
                 if (connection_type) |t| if (!(eql(u8, t, "wifi") or eql(u8, t, "ethernet"))) continue;
-                var net_info = NetworkInfo{
+                try self.network_infos.resize(i+1);
+                self.network_infos.items[i]  = NetworkInfo{
                     .network_type = toNetworkType(connection_type.?),
                     .network_status = toNetworkStatus(status.?),
-                    .network_info_len = description.?.len,
+                    .network_info = try dupeString(self.allocator, description.?),
                 };
-                std.mem.copy(u8, net_info.network_info[0..description.?.len], description.?[0..description.?.len]);
-
-                try self.network_infos.append(net_info);
+                //try self.network_infos.append(net_info);
                 self.num_interfaces += 1;
+                i += 1;
             }
         }
     }
 
     pub fn update_bar(self: *NetworkWidget) anyerror!void {
-        var arena = std.heap.ArenaAllocator.init(self.allocator);
-        defer arena.deinit();
-        var allocator = &arena.allocator;
+        var buffer: [512]u8 = undefined;
+        var fba = std.heap.FixedBufferAllocator.init(&buffer);
+        var allocator = &fba.allocator;
         for (self.network_infos.items) |info, i| {
             if (i != self.current_interface) continue;
             //std.log.debug(.network, "item! {} {}\n", .{ info, i });
+            const inner_text =  try std.fmt.allocPrint(allocator, "{} {}", .{ @tagName(info.network_type), info.network_info });
+            const full_text = try colour(allocator, networkStatusToColour(info.network_status), inner_text);
+            defer allocator.free(full_text);
+            allocator.free(inner_text);
 
             try self.bar.add(Info{
                 .name = "network",
-                .full_text = try colour(allocator, networkStatusToColour(info.network_status), try std.fmt.allocPrint(allocator, "{} {}", .{ @tagName(info.network_type), info.network_info[0..info.network_info_len] })),
+                .full_text = full_text,
                 .markup = "pango",
             });
         }
     }
 
     pub fn start(self: *NetworkWidget) anyerror!void {
-        var arena = std.heap.ArenaAllocator.init(self.allocator);
-        defer arena.deinit();
-        var allocator = &arena.allocator;
-        self.network_infos = std.ArrayList(NetworkInfo).init(allocator);
+        self.network_infos = std.ArrayList(NetworkInfo).init(self.allocator);
+        defer self.network_infos.deinit();
         while (self.bar.keep_running()) {
             try self.update_network_infos();
             try self.update_bar();
             std.time.sleep(std.time.ns_per_s);
+        }
+        const lock = self.update_mutex.acquire();
+        defer lock.release();
+        for (self.network_infos.items) |info| {
+            freeString(self.allocator, info.network_info);
         }
     }
 };

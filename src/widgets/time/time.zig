@@ -25,12 +25,12 @@ pub const TimeWidget = struct {
 
     pub fn start(self: *TimeWidget) anyerror!void {
         // TODO: find a god damn decent time library thats better than this bullshit.
-        while (self.bar.keep_running()) {
             var arena = std.heap.ArenaAllocator.init(self.allocator);
             defer arena.deinit();
             var allocator = &arena.allocator;
             var local = time.Location.getLocal(allocator);
-            var now = time.now(&local);
+        while (self.bar.keep_running()) {
+ var now = time.now(&local);
             var date = now.date();
             var clock = now.clock();
 
