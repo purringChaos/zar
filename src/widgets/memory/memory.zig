@@ -205,7 +205,7 @@ pub const MemoryWidget = struct {
 
         while (self.bar.keep_running()) {
             self.update_bar() catch {};
-            //std.time.sleep(500 * std.time.ns_per_ms);
+            std.time.sleep(500 * std.time.ns_per_ms);
         }
     }
 };

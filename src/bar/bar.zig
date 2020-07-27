@@ -14,6 +14,31 @@ fn readFromSignalFd(signal_fd: std.os.fd_t) !void {
     return error.Shutdown;
 }
 
+pub fn utf8ValidateSlice(s: []const u8) bool {
+    var i: usize = 0;
+    while (i < s.len) {
+        if (std.unicode.utf8ByteSequenceLength(s[i])) |cp_len| {
+            if (i + cp_len > s.len) {
+                log.err(.uni, "oh nos: {} {} {}\n", .{i + cp_len, i, s.len});
+                log.err(.uni, "oh no: {}\n", .{s[i .. i + cp_len]});
+                return false;
+            }
+
+            if (std.unicode.utf8Decode(s[i .. i + cp_len])) |_| {} else |_| {
+                log.err(.uni, "oh no: {}\n", .{s[i .. i + cp_len]});
+                return false;
+            }
+            i += cp_len;
+        } else |err| {
+                log.err(.uni, "oh noz: {} {} {} {} \"{}\" \n", .{s[i], s.len, i, err, s[0..i+1]});
+
+            return false;
+        }
+    }
+    return true;
+}
+
+
 fn sigemptyset(set: *std.os.sigset_t) void {
     for (set) |*val| {
         val.* = 0;
@@ -291,6 +316,9 @@ pub const Bar = struct {
                 }
                 // If we reach here then it changed.
                 try self.free_info(infoItem);
+if (!utf8ValidateSlice(info.full_text)) {
+std.log.err(.barerr, "Oh No: {}\n", .{info.full_text});
+}
                 self.infos.items[index] = try self.dupe_info(info);
                 try self.print_infos(false);
             }

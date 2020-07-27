@@ -99,10 +99,6 @@ pub const BatteryWidget = struct {
         var ppallocator = &fba.allocator;
         const pp = try self.get_power_paths(ppallocator);
         while (self.bar.keep_running()) {
-            var arena = std.heap.ArenaAllocator.init(self.allocator);
-            defer arena.deinit();
-            var allocator = &arena.allocator;
-
             var can_get_watts: bool = false;
 
             var watts: f64 = 0;
@@ -127,7 +123,7 @@ pub const BatteryWidget = struct {
                 descriptor = comptimeColour("green", "(C)");
                 sign = "+";
             } else if (std.mem.eql(u8, status, "Discharging")) {
-                descriptor = try colour(allocator, power_colour, "(D)");
+                descriptor = comptimeColour("red", "(D)");
                 sign = "-";
             } else if (std.mem.eql(u8, status, "Unknown")) {
                 descriptor = comptimeColour("yellow", "(U)");
@@ -151,16 +147,29 @@ pub const BatteryWidget = struct {
             var watts_info: []const u8 = "";
 
             if (can_get_watts) {
-                watts_info = try colour(allocator, "purple", try std.fmt.allocPrint(allocator, " {}{d:.2}W", .{ sign, watts }));
+                const watts_str = try std.fmt.allocPrint(self.allocator, " {}{d:.2}W", .{ sign, watts });
+                watts_info = try colour(self.allocator, "purple", watts_str);
+                self.allocator.free(watts_str);
+            }
+            defer {
+                if (can_get_watts) {
+                    self.allocator.free(watts_info);
+                }
             }
 
-            var bat_info = try std.fmt.allocPrint(allocator, "{} {} {}{}{}", .{
+            const capInfo = try std.fmt.allocPrint(self.allocator, "{d:.2}", .{capacity});
+            const colourCapInfo = try colour(self.allocator, power_colour, capInfo);
+            self.allocator.free(capInfo);
+            defer self.allocator.free(colourCapInfo);
+
+            var bat_info = try std.fmt.allocPrint(self.allocator, "{} {} {}{}{}", .{
                 comptimeColour("accentlight", "bat"),
                 descriptor,
-                colour(allocator, power_colour, try std.fmt.allocPrint(allocator, "{d:.2}", .{capacity})),
+                colourCapInfo,
                 comptimeColour("accentdark", "%"),
                 watts_info,
             });
+            defer self.allocator.free(bat_info);
 
             try self.bar.add(Info{
                 .name = "battery",
