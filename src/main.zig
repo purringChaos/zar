@@ -50,16 +50,21 @@ pub fn log(
 pub fn main() !void {
     std.log.info(.main, "Starting Bar.", .{});
     var allocator: *std.mem.Allocator = undefined;
-    var dbgAlloc: *DebugAllocator = undefined;
+    var dbgAlloc: DebugAllocator = undefined;
+    var arena: std.heap.ArenaAllocator = undefined;
     if (debug_allocator) {
         // Warning that DebugAllocator can get a little crashy.
-        dbgAlloc = &DebugAllocator.init(std.heap.page_allocator, 8192 * 8192);
+        dbgAlloc = DebugAllocator.init(std.heap.page_allocator, 8192 * 8192);
         allocator = &dbgAlloc.allocator;
     } else {
-        var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-        defer arena.deinit();
+        arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         allocator = &arena.allocator;
     }
+    defer {
+        if (!debug_allocator) arena.deinit();
+    }
+
+
     var bar = barImpl.initBar(allocator);
     var br = Bar.init(&bar);
 
