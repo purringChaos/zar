@@ -37,7 +37,6 @@ pub fn log(
         .notice => "NOTI",
         .info => "INFO",
         .debug => "DBUG",
-        else => "WAT",
     };
     var format_text: []const u8 = "";
     const prefix = prefix_text ++ "[" ++ @tagName(scope) ++ "] ";
@@ -69,9 +68,6 @@ pub fn main() !void {
     var br = Bar.init(&bar);
 
     const widgets = [_]*Widget{
-        //&Widget.init(&textWidget.New("owo", "potato")), // 4KiB
-        //&Widget.init(&textWidget.New("uwu", "tomato")), // 4KiB
-
         &Widget.init(&networkWidget.New(allocator, &br)), // 24.01KiB
         &Widget.init(&cpuWidget.New(&br)), // 4.08KiB
         &Widget.init(&memoryWidget.New(&br)), // 4.08KiB
