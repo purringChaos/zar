@@ -7,37 +7,13 @@ const log = std.log;
 const terminal_version = @import("build_options").terminal_version;
 const debug_allocator = @import("build_options").debug_allocator;
 const disable_terminal_mouse = @import("build_options").disable_terminal_mouse;
+const json = @import("json.zig");
 
 fn readFromSignalFd(signal_fd: std.os.fd_t) !void {
     var buf: [@sizeOf(os.linux.signalfd_siginfo)]u8 align(8) = undefined;
     _ = try os.read(signal_fd, &buf);
     return error.Shutdown;
 }
-
-pub fn utf8ValidateSlice(s: []const u8) bool {
-    var i: usize = 0;
-    while (i < s.len) {
-        if (std.unicode.utf8ByteSequenceLength(s[i])) |cp_len| {
-            if (i + cp_len > s.len) {
-                log.err(.uni, "oh nos: {} {} {}\n", .{i + cp_len, i, s.len});
-                log.err(.uni, "oh no: {}\n", .{s[i .. i + cp_len]});
-                return false;
-            }
-
-            if (std.unicode.utf8Decode(s[i .. i + cp_len])) |_| {} else |_| {
-                log.err(.uni, "oh no: {}\n", .{s[i .. i + cp_len]});
-                return false;
-            }
-            i += cp_len;
-        } else |err| {
-                log.err(.uni, "oh noz: {} {} {} {} \"{}\" \n", .{s[i], s.len, i, err, s[0..i+1]});
-
-            return false;
-        }
-    }
-    return true;
-}
-
 
 fn sigemptyset(set: *std.os.sigset_t) void {
     for (set) |*val| {
@@ -103,7 +79,7 @@ pub const Bar = struct {
         // Serialize all bar items and put on stdout.
         try self.out_file.writer().writeAll("[");
         for (self.infos.items) |info, i| {
-            try std.json.stringify(info, .{}, self.out_file.writer());
+            try json.stringify(info, .{}, self.out_file.writer());
 
             if (i < self.infos.items.len - 1) {
                 try self.out_file.writer().writeAll(",");
@@ -213,8 +189,8 @@ pub const Bar = struct {
                         current_info_line_length = current_info_line_length + 1;
                     }
                     // Get the first widget that the click is in.
-                    if (click_x_position <= current_info_line_length) { 
-                        self.dispatch_click_event(infoItem.name, .{ .button = .LeftClick, .x = click_x_position, .y=0,.scale=1, .height=1, .relative_x = click_x_position - previous_length}) catch {};
+                    if (click_x_position <= current_info_line_length) {
+                        self.dispatch_click_event(infoItem.name, .{ .button = .LeftClick, .x = click_x_position, .y = 0, .scale = 1, .height = 1, .relative_x = click_x_position - previous_length }) catch {};
                         break;
                     }
                     // Compensate for the | seporator on the terminal.
@@ -239,9 +215,9 @@ pub const Bar = struct {
                 // instead of looping and getting it, maybe then it would make more sense?
                 // Anyway this just strips off the prefix of ',' so I can parse the json.
                 if (line[0] == ',') line = line[1..line.len];
-                const parseOptions = std.json.ParseOptions{ .allocator = self.allocator };
-                const data = try std.json.parse(MouseEvent, &std.json.TokenStream.init(line), parseOptions);
-                defer std.json.parseFree(MouseEvent, data, parseOptions);
+                const parseOptions = json.ParseOptions{ .allocator = self.allocator };
+                const data = try json.parse(MouseEvent, &json.TokenStream.init(line), parseOptions);
+                defer json.parseFree(MouseEvent, data, parseOptions);
 
                 self.dispatch_click_event(data.name, data) catch {};
                 // If mouse_event needs to store the event for after the call is finished,
@@ -316,9 +292,6 @@ pub const Bar = struct {
                 }
                 // If we reach here then it changed.
                 try self.free_info(infoItem);
-if (!utf8ValidateSlice(info.full_text)) {
-std.log.err(.barerr, "Oh No: {}\n", .{info.full_text});
-}
                 self.infos.items[index] = try self.dupe_info(info);
                 try self.print_infos(false);
             }
@@ -332,7 +305,7 @@ pub fn initBar(allocator: *std.mem.Allocator) Bar {
         .widgets = undefined,
         .running = false,
         .infos = std.ArrayList(Info).init(allocator),
-        .items_mutex = std.Mutex.init(),
+        .items_mutex = std.Mutex{},
         .out_file = std.io.getStdOut(),
     };
 }

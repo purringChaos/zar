@@ -129,6 +129,19 @@ pub const MemoryWidget = struct {
         self.update_bar() catch {};
     }
 
+    pub fn clear_cache(self: *MemoryWidget) !void {
+        var buffer: [512 * 512]u8 = undefined;
+        var fba = std.heap.FixedBufferAllocator.init(&buffer);
+        var allocator = &fba.allocator;
+        var proc = try std.ChildProcess.init(&[_][]const u8{ "bash", "/home/kitteh/Scripts/drop-cache.sh" }, allocator);
+        proc.stdout_behavior = .Close;
+        proc.stdin_behavior = .Close;
+        proc.stderr_behavior = .Close;
+        try proc.spawn();
+        _ = try proc.kill();
+        proc.deinit();
+    }
+
     fn update_bar(self: *MemoryWidget) !void {
         var buffer: [512]u8 = undefined;
         var fba = std.heap.FixedBufferAllocator.init(&buffer);
@@ -191,6 +204,11 @@ pub const MemoryWidget = struct {
             .full_text = text,
             .markup = "pango",
         });
+        if (kibibytesToMegabytes(memInfo.cached) > 1000) {
+            self.clear_cache() catch |err| {
+                std.log.err(.memory, "Can't clear cache {}.\n", .{err});
+            };
+        }
     }
 
     pub fn start(self: *MemoryWidget) anyerror!void {

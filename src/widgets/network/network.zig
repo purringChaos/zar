@@ -64,7 +64,7 @@ pub const NetworkWidget = struct {
     network_infos: std.ArrayList(NetworkInfo),
     num_interfaces: u8 = 0,
     current_interface: u8 = 0,
-    update_mutex: std.Mutex = std.Mutex.init(),
+    update_mutex: std.Mutex = std.Mutex{},
 
     pub fn name(self: *NetworkWidget) []const u8 {
         return "network";
@@ -94,12 +94,16 @@ pub const NetworkWidget = struct {
     pub fn update_network_infos(self: *NetworkWidget) anyerror!void {
         const lock = self.update_mutex.acquire();
         defer lock.release();
+        std.log.debug(.network, "Updating network info.\n", .{});
         for (self.network_infos.items) |info| {
             freeString(self.allocator, info.network_info);
         }
         self.num_interfaces = 0;
         var proc = try std.ChildProcess.init(&[_][]const u8{ "nmcli", "-f", "common", "-c", "no", "d" }, self.allocator);
-        defer { _ = proc.kill() catch {}; proc.deinit(); }
+        defer {
+            _ = proc.kill() catch {};
+            proc.deinit();
+        }
         proc.stdout_behavior = .Pipe;
         try proc.spawn();
         var i: u8 = 0;
@@ -115,8 +119,8 @@ pub const NetworkWidget = struct {
                 const status = it.next();
                 const description = it.next();
                 if (connection_type) |t| if (!(eql(u8, t, "wifi") or eql(u8, t, "ethernet"))) continue;
-                try self.network_infos.resize(i+1);
-                self.network_infos.items[i]  = NetworkInfo{
+                try self.network_infos.resize(i + 1);
+                self.network_infos.items[i] = NetworkInfo{
                     .network_type = toNetworkType(connection_type.?),
                     .network_status = toNetworkStatus(status.?),
                     .network_info = try dupeString(self.allocator, description.?),
@@ -135,7 +139,7 @@ pub const NetworkWidget = struct {
         for (self.network_infos.items) |info, i| {
             if (i != self.current_interface) continue;
             //std.log.debug(.network, "item! {} {}\n", .{ info, i });
-            const inner_text =  try std.fmt.allocPrint(allocator, "{} {}", .{ @tagName(info.network_type), info.network_info });
+            const inner_text = try std.fmt.allocPrint(allocator, "{} {}", .{ @tagName(info.network_type), info.network_info });
             const full_text = try colour(allocator, networkStatusToColour(info.network_status), inner_text);
             defer allocator.free(full_text);
             allocator.free(inner_text);

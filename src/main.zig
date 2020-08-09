@@ -18,7 +18,7 @@ const Info = @import("types/info.zig");
 const debug_allocator = @import("build_options").debug_allocator;
 
 // Set the log level to warning
-//pub const log_level: std.log.Level = .warn;
+pub const log_level: std.log.Level = .warn;
 // Define root.log to override the std implementation
 pub fn log(
     comptime level: std.log.Level,
@@ -63,7 +63,6 @@ pub fn main() !void {
         if (!debug_allocator) arena.deinit();
     }
 
-
     var bar = barImpl.initBar(allocator);
     var br = Bar.init(&bar);
 
@@ -78,8 +77,8 @@ pub fn main() !void {
     bar.widgets = widgets[0..];
     try br.start();
     if (debug_allocator) {
-        std.log.debug(.main, "Finished cleanup, last allocation info.\n", .{});
-        std.log.debug(.main, "\n{}\n", .{dbgAlloc.info});
+        std.debug.print("Finished cleanup, last allocation info.\n", .{});
+        std.debug.print("\n{}\n", .{dbgAlloc.info});
         dbgAlloc.printRemainingStackTraces();
         dbgAlloc.deinit();
     }
