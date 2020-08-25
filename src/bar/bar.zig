@@ -215,9 +215,9 @@ pub const Bar = struct {
                 // instead of looping and getting it, maybe then it would make more sense?
                 // Anyway this just strips off the prefix of ',' so I can parse the json.
                 if (line[0] == ',') line = line[1..line.len];
-                const parseOptions = json.ParseOptions{ .allocator = self.allocator };
-                const data = try json.parse(MouseEvent, &json.TokenStream.init(line), parseOptions);
-                defer json.parseFree(MouseEvent, data, parseOptions);
+                const parseOptions = std.json.ParseOptions{ .allocator = self.allocator };
+                const data = try std.json.parse(MouseEvent, &std.json.TokenStream.init(line), parseOptions);
+                defer std.json.parseFree(MouseEvent, data, parseOptions);
 
                 self.dispatch_click_event(data.name, data) catch {};
                 // If mouse_event needs to store the event for after the call is finished,

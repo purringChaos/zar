@@ -67,7 +67,7 @@ pub fn main() !void {
     var br = Bar.init(&bar);
 
     const widgets = [_]*Widget{
-        &Widget.init(&networkWidget.New(allocator, &br)), // 24.01KiB
+        //&Widget.init(&networkWidget.New(allocator, &br)), // 24.01KiB
         &Widget.init(&cpuWidget.New(&br)), // 4.08KiB
         &Widget.init(&memoryWidget.New(&br)), // 4.08KiB
         &Widget.init(&weatherWidget.New(allocator, &br, @import("build_options").weather_location)), // 16.16KiB
