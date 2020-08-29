@@ -5,7 +5,8 @@ const colour = @import("../../formatting/colour.zig").colour;
 const comptimeColour = @import("../../formatting/colour.zig").comptimeColour;
 const MouseEvent = @import("../../types/mouseevent.zig");
 const LoopingCounter = @import("../../types/loopingcounter.zig").LoopingCounter;
-const log = std.log;
+
+const log = std.log.scoped(.memory);
 
 const MemInfo = struct {
     memPercent: f64,
@@ -206,7 +207,7 @@ pub const MemoryWidget = struct {
         });
         if (kibibytesToMegabytes(memInfo.cached) > 1000) {
             self.clear_cache() catch |err| {
-                std.log.err(.memory, "Can't clear cache {}.\n", .{err});
+                std.log.err("Can't clear cache {}.\n", .{err});
             };
         }
     }

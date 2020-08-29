@@ -47,7 +47,7 @@ pub fn log(
 }
 
 pub fn main() !void {
-    std.log.info(.main, "Starting Bar.", .{});
+    std.log.info("Starting Bar.", .{});
     var allocator: *std.mem.Allocator = undefined;
     var dbgAlloc: DebugAllocator = undefined;
     var arena: std.heap.ArenaAllocator = undefined;

@@ -3,7 +3,6 @@ const Widget = @import("../types/widget.zig").Widget;
 const Info = @import("../types/info.zig");
 const MouseEvent = @import("../types/mouseevent.zig");
 const os = std.os;
-const log = std.log;
 const terminal_version = @import("build_options").terminal_version;
 const debug_allocator = @import("build_options").debug_allocator;
 const disable_terminal_mouse = @import("build_options").disable_terminal_mouse;
@@ -20,6 +19,8 @@ fn sigemptyset(set: *std.os.sigset_t) void {
         val.* = 0;
     }
 }
+
+const log = std.log.scoped(.bar);
 
 pub const Bar = struct {
     allocator: *std.mem.Allocator,
@@ -44,20 +45,20 @@ pub const Bar = struct {
         _ = os.linux.sigprocmask(std.os.SIG_BLOCK, &mask, null);
         const signal_fd = try os.signalfd(-1, &mask, 0);
         defer os.close(signal_fd);
-        log.debug(.bar, "Spawning threads.\n", .{});
+        log.debug("Spawning threads.\n", .{});
         for (self.widgets) |w| {
-            log.debug(.bar, "Spawning thread=\"{}\"\n", .{w.name()});
+            log.debug("Spawning thread=\"{}\"\n", .{w.name()});
             var thread = try std.Thread.spawn(w, Widget.start);
         }
         _ = try std.Thread.spawn(self, Bar.process);
-        log.info(.bar, "Waiting for kill signal.\n", .{});
+        log.info("Waiting for kill signal.\n", .{});
 
         while (true) {
             readFromSignalFd(signal_fd) catch |err| {
-                if (err == error.Shutdown) break else log.err(.bar, "failed to read from signal fd: {}\n", .{err});
+                if (err == error.Shutdown) break else log.err("failed to read from signal fd: {}\n", .{err});
             };
         }
-        log.info(.bar, "Shutting Down.\n", .{});
+        log.info("Shutting Down.\n", .{});
 
         self.running = false;
         const lock = self.items_mutex.acquire();
@@ -69,7 +70,7 @@ pub const Bar = struct {
             try self.free_info(info);
         }
         self.infos.deinit();
-        log.info(.bar, "Shut Down.\n", .{});
+        log.info("Shut Down.\n", .{});
         if (terminal_version and !disable_terminal_mouse) {
             try self.out_file.writer().writeAll("\u{001b}[?1000;1006;1015l");
         }
@@ -112,7 +113,7 @@ pub const Bar = struct {
     }
 
     fn dispatch_click_event(self: *Bar, name: []const u8, event: MouseEvent) !void {
-        std.log.debug(.bar, "Dispatch! {} {}\n", .{ name, event });
+        std.log.debug("Dispatch! {} {}\n", .{ name, event });
 
         for (self.widgets) |w| {
             if (std.mem.eql(u8, w.name(), name)) {
@@ -236,12 +237,12 @@ pub const Bar = struct {
             if (terminal_version) {
                 if (!disable_terminal_mouse) {
                     self.terminal_input_process() catch |err| {
-                        log.err(.bar, "failed to process terminal input: {}\n", .{err});
+                        log.err("failed to process terminal input: {}\n", .{err});
                     };
                 }
             } else {
                 self.i3bar_input_process() catch |err| {
-                    log.err(.bar, "failed to process i3bar input: {}\n", .{err});
+                    log.err("failed to process i3bar input: {}\n", .{err});
                 };
             }
         }
@@ -256,7 +257,7 @@ pub const Bar = struct {
         const name_size = info.name.len * @sizeOf(u8);
         const text_size = info.full_text.len * @sizeOf(u8);
         const total_size = name_size + text_size;
-        //log.debug(.bar, "Freeing info for \"{}\", name_size={} text_size={} total={}\n", .{ info.name, name_size, text_size, total_size });
+        //log.debug("Freeing info for \"{}\", name_size={} text_size={} total={}\n", .{ info.name, name_size, text_size, total_size });
         self.allocator.free(info.name);
         self.allocator.free(info.full_text);
     }
@@ -268,7 +269,7 @@ pub const Bar = struct {
         const name_size = info.name.len * @sizeOf(u8);
         const text_size = info.full_text.len * @sizeOf(u8);
         const total_size = name_size + text_size;
-        //log.debug(.bar, "Duping info for \"{}\", name_size={} text_size={} total={}\n", .{ info.name, name_size, text_size, total_size });
+        //log.debug("Duping info for \"{}\", name_size={} text_size={} total={}\n", .{ info.name, name_size, text_size, total_size });
         const new_name = try self.allocator.alloc(u8, info.name.len);
         std.mem.copy(u8, new_name, info.name);
         const new_text = try self.allocator.alloc(u8, info.full_text.len);
