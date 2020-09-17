@@ -11,7 +11,7 @@ pub const Bar = struct {
     }, interface.Storage.NonOwning);
     iface: IFace,
     pub fn init(impl_ptr: anytype) Bar {
-        return .{ .iface = try IFace.init(.{impl_ptr}) };
+        return  .{ .iface = try IFace.init(impl_ptr) };
     }
     pub fn keep_running(self: *Bar) bool {
         return self.iface.call("keep_running", .{});
