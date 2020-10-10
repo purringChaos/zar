@@ -162,37 +162,37 @@ pub const MemoryWidget = struct {
                 formatMemoryPercent(allocator, memInfo.swapPercent),
             });
         } else if (self.lc.get() == 2) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
                 comptimeColour("accentlight", "mem free"),
                 kibibytesToMegabytes(memInfo.memFree),
             });
         } else if (self.lc.get() == 3) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
                 comptimeColour("accentlight", "swap free"),
                 kibibytesToMegabytes(memInfo.swapFree),
             });
         } else if (self.lc.get() == 4) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
                 comptimeColour("accentlight", "mem used"),
                 kibibytesToMegabytes(memInfo.memUsed),
             });
         } else if (self.lc.get() == 5) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
                 comptimeColour("accentlight", "swap used"),
                 kibibytesToMegabytes(memInfo.swapUsed),
             });
         } else if (self.lc.get() == 6) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
                 comptimeColour("accentlight", "mem cache"),
                 kibibytesToMegabytes(memInfo.cached),
             });
         } else if (self.lc.get() == 7) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
                 comptimeColour("accentlight", "swap cache"),
                 kibibytesToMegabytes(memInfo.swapCached),
             });
         } else if (self.lc.get() == 8) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0<2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
                 comptimeColour("accentlight", "mem buf"),
                 kibibytesToMegabytes(memInfo.buffers),
             });

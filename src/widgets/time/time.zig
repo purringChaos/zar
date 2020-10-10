@@ -46,11 +46,11 @@ pub const TimeWidget = struct {
             }
 
             var timeStr = try std.fmt.allocPrint(allocator, "{}{}{}{}{}{}", .{
-                colour(allocator, "red", try std.fmt.allocPrint(allocator, "{d:0<2}", .{@intCast(u7, hour)})),
+                colour(allocator, "red", try std.fmt.allocPrint(allocator, "{d:0>2}", .{@intCast(u7, hour)})),
                 comptimeColour("accentlight", ":"),
-                colour(allocator, "orange", try std.fmt.allocPrint(allocator, "{d:0<2}", .{@intCast(u7, clock.min)})),
+                colour(allocator, "orange", try std.fmt.allocPrint(allocator, "{d:0>2}", .{@intCast(u7, clock.min)})),
                 comptimeColour("accentmedium", ":"),
-                colour(allocator, "yellow", try std.fmt.allocPrint(allocator, "{d:0<2}", .{@intCast(u7, clock.sec)})),
+                colour(allocator, "yellow", try std.fmt.allocPrint(allocator, "{d:0>2}", .{@intCast(u7, clock.sec)})),
                 colour(allocator, "accentdark", end),
             });
 
