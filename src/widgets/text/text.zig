@@ -20,8 +20,7 @@ pub const TextWidget = struct {
 
     pub fn start(self: *TextWidget) anyerror!void {}
 };
-
-pub inline fn New(name: []const u8, text: []const u8) TextWidget {
+pub fn New(name: []const u8, text: []const u8) callconv(.Inline) TextWidget {
     return TextWidget{
         .name = name,
         .text = text,

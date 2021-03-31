@@ -27,7 +27,7 @@ pub const Bar = struct {
     widgets: []const *Widget,
     running: bool,
     infos: std.ArrayList(Info),
-    items_mutex: std.Mutex,
+    items_mutex: std.Thread.Mutex,
     out_file: std.fs.File,
     pub fn start(self: *Bar) !void {
         self.running = true;
@@ -48,9 +48,9 @@ pub const Bar = struct {
         log.debug("Spawning threads.\n", .{});
         for (self.widgets) |w| {
             log.debug("Spawning thread=\"{}\"\n", .{w.name()});
-            var thread = try std.Thread.spawn(w, Widget.start);
+            var thread = try std.Thread.spawn(Widget.start, w);
         }
-        _ = try std.Thread.spawn(self, Bar.process);
+        _ = try std.Thread.spawn(Bar.process, self);
         log.info("Waiting for kill signal.\n", .{});
 
         while (true) {
@@ -75,8 +75,7 @@ pub const Bar = struct {
             try self.out_file.writer().writeAll("\u{001b}[?1000;1006;1015l");
         }
     }
-
-    inline fn print_i3bar_infos(self: *Bar) !void {
+    fn print_i3bar_infos(self: *Bar) callconv(.Inline) !void {
         // Serialize all bar items and put on stdout.
         try self.out_file.writer().writeAll("[");
         for (self.infos.items) |info, i| {
@@ -88,8 +87,7 @@ pub const Bar = struct {
         }
         try self.out_file.writer().writeAll("],\n");
     }
-
-    inline fn print_terminal_infos(self: *Bar) !void {
+    fn print_terminal_infos(self: *Bar) callconv(.Inline) !void {
         // For terminal we just need to directly print.
         for (self.infos.items) |info, i| {
             try self.out_file.writer().writeAll(info.full_text);
@@ -121,8 +119,7 @@ pub const Bar = struct {
             }
         }
     }
-
-    inline fn terminal_input_process(self: *Bar) !void {
+    fn terminal_input_process(self: *Bar) callconv(.Inline) !void {
         // TODO: make work on other OSes other than xterm compatable terminals.
 
         // Write to stdout that we want to recieve all terminal click events.
@@ -133,7 +130,7 @@ pub const Bar = struct {
         termios.iflag &= ~@as(
             os.tcflag_t,
             os.IGNBRK | os.BRKINT | os.PARMRK | os.ISTRIP |
-            os.INLCR | os.IGNCR | os.ICRNL | os.IXON,
+                os.INLCR | os.IGNCR | os.ICRNL | os.IXON,
         );
         // Disable echo so that you don't see mouse events in terminal.
         termios.lflag |= ~@as(os.tcflag_t, (os.ECHO | os.ICANON));
@@ -145,7 +142,7 @@ pub const Bar = struct {
         while (self.running) {
             var line_buffer: [128]u8 = undefined;
             // 0x1b is the ESC key which is used for sending and recieving events to xterm terminals.
-            const line_opt = try std.io.getStdIn().inStream().readUntilDelimiterOrEof(&line_buffer, 0x1b);
+            const line_opt = try std.io.getStdIn().reader().readUntilDelimiterOrEof(&line_buffer, 0x1b);
             if (line_opt) |l| {
                 // I honestly have no idea what this does but I assume that it checks
                 // that this is the right event?
@@ -200,11 +197,10 @@ pub const Bar = struct {
             }
         }
     }
-
-    inline fn i3bar_input_process(self: *Bar) !void {
+    fn i3bar_input_process(self: *Bar) callconv(.Inline) !void {
         var line_buffer: [512]u8 = undefined;
         while (self.running) {
-            const line_opt = try std.io.getStdIn().inStream().readUntilDelimiterOrEof(&line_buffer, '\n');
+            const line_opt = try std.io.getStdIn().reader().readUntilDelimiterOrEof(&line_buffer, '\n');
             if (line_opt) |l| {
                 var line = l;
                 if (std.mem.eql(u8, line, "[")) continue;
@@ -217,6 +213,7 @@ pub const Bar = struct {
                 // Anyway this just strips off the prefix of ',' so I can parse the json.
                 if (line[0] == ',') line = line[1..line.len];
                 const parseOptions = std.json.ParseOptions{ .allocator = self.allocator };
+                @setEvalBranchQuota(9999999);
                 const data = try std.json.parse(MouseEvent, &std.json.TokenStream.init(line), parseOptions);
                 defer std.json.parseFree(MouseEvent, data, parseOptions);
 
@@ -306,7 +303,7 @@ pub fn initBar(allocator: *std.mem.Allocator) Bar {
         .widgets = undefined,
         .running = false,
         .infos = std.ArrayList(Info).init(allocator),
-        .items_mutex = std.Mutex{},
+        .items_mutex = std.Thread.Mutex{},
         .out_file = std.io.getStdOut(),
     };
 }

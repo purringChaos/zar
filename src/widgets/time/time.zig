@@ -45,7 +45,7 @@ pub const TimeWidget = struct {
                 end = "am";
             }
 
-            var timeStr = try std.fmt.allocPrint(allocator, "{}{}{}{}{}{}", .{
+            var timeStr = try std.fmt.allocPrint(allocator, "{s}{s}{s}{s}{s}{s}", .{
                 colour(allocator, "red", try std.fmt.allocPrint(allocator, "{d:0>2}", .{@intCast(u7, hour)})),
                 comptimeColour("accentlight", ":"),
                 colour(allocator, "orange", try std.fmt.allocPrint(allocator, "{d:0>2}", .{@intCast(u7, clock.min)})),
@@ -69,15 +69,15 @@ pub const TimeWidget = struct {
                 }
             }
 
-            var h = try std.fmt.allocPrint(allocator, "{} {} {}{} {} {} {} {} {} {}", .{
+            var h = try std.fmt.allocPrint(allocator, "{s} {s} {s}{s} {s} {s} {s} {s} {s} {s}", .{
                 colour(allocator, "green", now.weekday().string()),
                 comptimeColour("purple", "the"),
-                colour(allocator, "yellow", try std.fmt.allocPrint(allocator, "{}", .{date.day})),
+                colour(allocator, "yellow", try std.fmt.allocPrint(allocator, "{d}", .{date.day})),
                 colour(allocator, "accentmedium", suffix),
                 comptimeColour("purple", "of"),
                 colour(allocator, "red", date.month.string()),
                 comptimeColour("purple", "in"),
-                colour(allocator, "accentlight", try std.fmt.allocPrint(allocator, "{}", .{date.year})),
+                colour(allocator, "accentlight", try std.fmt.allocPrint(allocator, "{d}", .{date.year})),
                 comptimeColour("purple", "at"),
                 timeStr,
             });
@@ -92,8 +92,7 @@ pub const TimeWidget = struct {
         }
     }
 };
-
-pub inline fn New(allocator: *std.mem.Allocator, bar: *Bar) TimeWidget {
+pub fn New(allocator: *std.mem.Allocator, bar: *Bar) callconv(.Inline) TimeWidget {
     return TimeWidget{
         .allocator = allocator,
         .bar = bar,

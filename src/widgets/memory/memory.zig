@@ -66,7 +66,7 @@ fn fetchTotalMemory() !MemInfo {
 
     while (true) {
         var line_buffer: [128]u8 = undefined;
-        const line_opt = try meminfo_file.inStream().readUntilDelimiterOrEof(&line_buffer, '\n');
+        const line_opt = try meminfo_file.reader().readUntilDelimiterOrEof(&line_buffer, '\n');
         if (line_opt) |line| {
             var it = std.mem.tokenize(line, " ");
             const line_header = it.next().?;
@@ -152,47 +152,47 @@ pub const MemoryWidget = struct {
 
         // And this is why I love the looping counter.
         if (self.lc.get() == 0) {
-            text = try std.fmt.allocPrint(allocator, "{} {}", .{
+            text = try std.fmt.allocPrint(allocator, "{s} {s}", .{
                 comptimeColour("accentlight", "mem"),
                 formatMemoryPercent(allocator, memInfo.memPercent),
             });
         } else if (self.lc.get() == 1) {
-            text = try std.fmt.allocPrint(allocator, "{} {}", .{
+            text = try std.fmt.allocPrint(allocator, "{s} {s}", .{
                 comptimeColour("accentlight", "swap"),
                 formatMemoryPercent(allocator, memInfo.swapPercent),
             });
         } else if (self.lc.get() == 2) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{s} {d:0>2} MB", .{
                 comptimeColour("accentlight", "mem free"),
                 kibibytesToMegabytes(memInfo.memFree),
             });
         } else if (self.lc.get() == 3) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{s} {d:0>2} MB", .{
                 comptimeColour("accentlight", "swap free"),
                 kibibytesToMegabytes(memInfo.swapFree),
             });
         } else if (self.lc.get() == 4) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{s} {d:0>2} MB", .{
                 comptimeColour("accentlight", "mem used"),
                 kibibytesToMegabytes(memInfo.memUsed),
             });
         } else if (self.lc.get() == 5) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{s} {d:0>2} MB", .{
                 comptimeColour("accentlight", "swap used"),
                 kibibytesToMegabytes(memInfo.swapUsed),
             });
         } else if (self.lc.get() == 6) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{s} {d:0>2} MB", .{
                 comptimeColour("accentlight", "mem cache"),
                 kibibytesToMegabytes(memInfo.cached),
             });
         } else if (self.lc.get() == 7) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{s} {d:0>2} MB", .{
                 comptimeColour("accentlight", "swap cache"),
                 kibibytesToMegabytes(memInfo.swapCached),
             });
         } else if (self.lc.get() == 8) {
-            text = try std.fmt.allocPrint(allocator, "{} {d:0>2} MB", .{
+            text = try std.fmt.allocPrint(allocator, "{s} {d:0>2} MB", .{
                 comptimeColour("accentlight", "mem buf"),
                 kibibytesToMegabytes(memInfo.buffers),
             });
@@ -207,7 +207,7 @@ pub const MemoryWidget = struct {
         });
         if (kibibytesToMegabytes(memInfo.cached) > 1000) {
             self.clear_cache() catch |err| {
-                std.log.err("Can't clear cache {}.\n", .{err});
+                std.log.err("Can't clear cache {any}.\n", .{err});
             };
         }
     }
@@ -228,8 +228,7 @@ pub const MemoryWidget = struct {
         }
     }
 };
-
-pub inline fn New(bar: *Bar) MemoryWidget {
+pub fn New(bar: *Bar) callconv(.Inline) MemoryWidget {
     return MemoryWidget{
         .bar = bar,
         .lc = LoopingCounter(8).init(),

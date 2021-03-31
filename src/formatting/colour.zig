@@ -27,8 +27,7 @@ const TerminalOrangeColour = "\u{001b}[31;1m";
 const TerminalYellowColour = "\u{001b}[33m";
 const TerminalGreenColour = "\u{001b}[32m";
 const TerminalPurpleColour = "\u{001b}[35m";
-
-inline fn getColourFromColour(clr: []const u8) []const u8 {
+fn getColourFromColour(clr: []const u8) callconv(.Inline) []const u8 {
     if (clr[0] == '#' or clr[0] == '\u{001b}') {
         return clr;
     } else if (eql(u8, clr, "text")) {
@@ -74,8 +73,8 @@ pub fn colour(alloc: *std.mem.Allocator, clr: []const u8, str: []const u8) ![]co
     if (disable_colour) return str;
     const proper_colour = getColourFromColour(clr);
     if (terminal_version) {
-        return try std.fmt.allocPrint(alloc, "{}{}" ++ TerminalResetColour, .{ proper_colour, str });
+        return try std.fmt.allocPrint(alloc, "{s}{s}" ++ TerminalResetColour, .{ proper_colour, str });
     } else {
-        return try std.fmt.allocPrint(alloc, "<span color=\"{}\">{}</span>", .{ proper_colour, str });
+        return try std.fmt.allocPrint(alloc, "<span color=\"{s}\">{s}</span>", .{ proper_colour, str });
     }
 }

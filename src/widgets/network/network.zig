@@ -49,12 +49,10 @@ pub const NetworkInfo = struct {
     network_status: NetworkStatus = .Connected,
     network_info: []const u8,
 };
-
-inline fn freeString(allocator: *std.mem.Allocator, string: []const u8) void {
+fn freeString(allocator: *std.mem.Allocator, string: []const u8) callconv(.Inline) void {
     allocator.free(string);
 }
-
-inline fn dupeString(allocator: *std.mem.Allocator, string: []const u8) ![]const u8 {
+fn dupeString(allocator: *std.mem.Allocator, string: []const u8) callconv(.Inline) ![]const u8 {
     return try allocator.dupe(u8, string);
 }
 
@@ -64,7 +62,7 @@ pub const NetworkWidget = struct {
     network_infos: std.ArrayList(NetworkInfo),
     num_interfaces: u8 = 0,
     current_interface: u8 = 0,
-    update_mutex: std.Mutex = std.Mutex{},
+    update_mutex: std.Thread.Mutex = std.Mutex{},
 
     pub fn name(self: *NetworkWidget) []const u8 {
         return "network";
@@ -167,8 +165,7 @@ pub const NetworkWidget = struct {
         }
     }
 };
-
-pub inline fn New(allocator: *std.mem.Allocator, bar: *Bar) NetworkWidget {
+pub fn New(allocator: *std.mem.Allocator, bar: *Bar) callconv(.Inline) NetworkWidget {
     return NetworkWidget{
         .allocator = allocator,
         .bar = bar,

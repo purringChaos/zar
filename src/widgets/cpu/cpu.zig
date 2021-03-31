@@ -32,7 +32,7 @@ fn fetchCPU() ![2]f64 {
     var data: [2]f64 = [2]f64{ 0.0, 0.0 };
 
     var line_buffer: [128]u8 = undefined;
-    const line_opt = try stat_file.inStream().readUntilDelimiterOrEof(&line_buffer, '\n');
+    const line_opt = try stat_file.reader().readUntilDelimiterOrEof(&line_buffer, '\n');
     if (line_opt) |line| {
         var it = std.mem.tokenize(line, " ");
         const stat_type = it.next().?;
@@ -98,7 +98,7 @@ pub const CPUWidget = struct {
         var allocator = &fba.allocator;
         try self.bar.add(Info{
             .name = "cpu",
-            .full_text = try std.fmt.allocPrint(allocator, "{} {}", .{
+            .full_text = try std.fmt.allocPrint(allocator, "{s} {s}", .{
                 comptimeColour("accentlight", "cpu"),
                 formatCPUPercent(allocator, percentage),
             }),
@@ -120,8 +120,7 @@ pub const CPUWidget = struct {
         }
     }
 };
-
-pub inline fn New(bar: *Bar) CPUWidget {
+pub fn New(bar: *Bar) callconv(.Inline) CPUWidget {
     return CPUWidget{
         .bar = bar,
     };

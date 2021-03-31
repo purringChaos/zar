@@ -155,7 +155,7 @@ pub const WeatherWidget = struct {
                 return;
             },
             else => |e| {
-                std.debug.print("\n\n\n\n\nError!: {}\n\n\n\n\n", .{@errorName(e)});
+                std.debug.print("\n\n\n\n\nError!: {s}\n\n\n\n\n", .{@errorName(e)});
                 return;
             },
         }
@@ -163,7 +163,7 @@ pub const WeatherWidget = struct {
         if (inf.code != 200) {
             try self.bar.add(Info{
                 .name = self.name,
-                .full_text = try std.fmt.allocPrint(arenacator, "Weather API Failed: {}", .{inf.message}),
+                .full_text = try std.fmt.allocPrint(arenacator, "Weather API Failed: {s}", .{inf.message}),
                 .markup = "pango",
             });
             return;
@@ -189,9 +189,9 @@ pub const WeatherWidget = struct {
 
         var i = Info{
             .name = self.name,
-            .full_text = try std.fmt.allocPrint(arenacator, "{} {}{}{} {}", .{
+            .full_text = try std.fmt.allocPrint(arenacator, "{s} {s}{s}{s} {s}", .{
                 comptimeColour("accentlight", "weather"),
-                colour(arenacator, tempColour, try std.fmt.allocPrint(arenacator, "{}", .{temp})),
+                colour(arenacator, tempColour, try std.fmt.allocPrint(arenacator, "{d}", .{temp})),
                 comptimeColour("accentlight", "°"),
                 comptimeColour("accentdark", "C"),
                 colour(arenacator, "green", main),
@@ -208,8 +208,7 @@ pub const WeatherWidget = struct {
         }
     }
 };
-
-pub inline fn New(allocator: *std.mem.Allocator, bar: *Bar, comptime location: []const u8) WeatherWidget {
+pub fn New(allocator: *std.mem.Allocator, bar: *Bar, comptime location: []const u8) callconv(.Inline) WeatherWidget {
     return WeatherWidget{
         .allocator = allocator,
         .bar = bar,

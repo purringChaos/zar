@@ -62,29 +62,29 @@ pub const BatteryWidget = struct {
         var iterate = dir.iterate();
         defer dir.close();
         while (try iterate.next()) |ent| {
-            var ps_dir = try std.fmt.allocPrint(provided_allocator, "/sys/class/power_supply/{}", .{ent.name});
+            var ps_dir = try std.fmt.allocPrint(provided_allocator, "/sys/class/power_supply/{s}", .{ent.name});
             var supply_dir = try fs.cwd().openDir(ps_dir, .{ .iterate = true });
             var supply_iterate = supply_dir.iterate();
             defer supply_dir.close();
             while (try supply_iterate.next()) |entry| {
                 if (std.mem.eql(u8, entry.name, "status")) {
-                    pp.status_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    pp.status_path = try std.fmt.allocPrint(provided_allocator, "{s}/{s}", .{ ps_dir, entry.name });
                     continue;
                 }
                 if (std.mem.eql(u8, entry.name, "power_now")) {
-                    pp.power_now_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    pp.power_now_path = try std.fmt.allocPrint(provided_allocator, "{s}/{s}", .{ ps_dir, entry.name });
                     continue;
                 }
                 if (std.mem.eql(u8, entry.name, "capacity")) {
-                    pp.capacity_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    pp.capacity_path = try std.fmt.allocPrint(provided_allocator, "{s}/{s}", .{ ps_dir, entry.name });
                     continue;
                 }
                 if (std.mem.eql(u8, entry.name, "current_now")) {
-                    pp.current_now_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    pp.current_now_path = try std.fmt.allocPrint(provided_allocator, "{s}/{s}", .{ ps_dir, entry.name });
                     continue;
                 }
                 if (std.mem.eql(u8, entry.name, "voltage_now")) {
-                    pp.voltage_now_path = try std.fmt.allocPrint(provided_allocator, "{}/{}", .{ ps_dir, entry.name });
+                    pp.voltage_now_path = try std.fmt.allocPrint(provided_allocator, "{s}/{s}", .{ ps_dir, entry.name });
                     continue;
                 }
             }
@@ -147,7 +147,7 @@ pub const BatteryWidget = struct {
             var watts_info: []const u8 = "";
 
             if (can_get_watts) {
-                const watts_str = try std.fmt.allocPrint(self.allocator, " {}{d:.2}W", .{ sign, watts });
+                const watts_str = try std.fmt.allocPrint(self.allocator, " {s}{d:.2}W", .{ sign, watts });
                 watts_info = try colour(self.allocator, "purple", watts_str);
                 self.allocator.free(watts_str);
             }
@@ -162,7 +162,7 @@ pub const BatteryWidget = struct {
             self.allocator.free(capInfo);
             defer self.allocator.free(colourCapInfo);
 
-            var bat_info = try std.fmt.allocPrint(self.allocator, "{} {} {}{}{}", .{
+            var bat_info = try std.fmt.allocPrint(self.allocator, "{s} {s} {s}{s}{s}", .{
                 comptimeColour("accentlight", "bat"),
                 descriptor,
                 colourCapInfo,
@@ -180,8 +180,7 @@ pub const BatteryWidget = struct {
         }
     }
 };
-
-pub inline fn New(allocator: *std.mem.Allocator, bar: *Bar) BatteryWidget {
+pub fn New(allocator: *std.mem.Allocator, bar: *Bar) callconv(.Inline) BatteryWidget {
     return BatteryWidget{
         .allocator = allocator,
         .bar = bar,

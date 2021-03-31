@@ -85,14 +85,14 @@ allocation_strack_addresses: std.AutoHashMap(usize, [stack_addresses_size]usize)
 
 // Interface implementation
 allocator: std.mem.Allocator,
-mutex: std.Mutex,
+mutex: std.Thread.Mutex,
 
 pub fn init(base_allocator: *std.mem.Allocator, max_bytes: usize) DebugAllocator {
     return .{
         .base_allocator = base_allocator,
         .info = .{},
         .max_bytes = max_bytes,
-        .mutex = std.Mutex.init(),
+        .mutex = std.Thread.Mutex.init(),
         .allocation_strack_addresses = std.AutoHashMap(usize, [stack_addresses_size]usize).init(base_allocator),
         .allocator = .{
             .allocFn = alloc,
